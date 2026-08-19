@@ -1,13 +1,5 @@
 # UI & Widget Rules
 
-## 12) Hardcoded string extraction & Localization policy
-- Do not introduce user-facing hardcoded strings directly in UI widgets.
-- **Apps supporting more than one language**: Use ARB localization. Add all user-facing text to every supported language's `.arb` file and access it via `context.l10n`.
-- **Apps supporting one language**: ARB setup is not required. Keep user-facing text in `lib/core/utils/app_strings.dart` and access it through `AppStrings`.
-- For feature-specific non-user-facing constants with no cross-feature reuse, use a feature-level constants file.
-- Replace inline fallback text (e.g., generic error messages) with localized ARB entries or `AppStrings`, according to the app's language count.
-- Exceptions are allowed for technical protocol literals (API paths, MIME types, regex patterns, route paths) when they are not user-facing copy.
-
 ## 13) Page-size and composition rule
 - **Widget Extraction Mandatory**: Reusable or custom UI components should be extracted into separate files within the `widgets` folder under the `presentation` layer to improve code readability and maintainability.
 - **Separate Files Required**: Each extracted widget must be placed in its own file (e.g., `shipment_header.dart`, `shipment_dates_row.dart`) rather than as private classes within the parent widget file.

@@ -1,20 +1,57 @@
 # Architecture Rules
 
 ## 1) Dependency direction
-- Allowed direction: `presentation -> domain -> data` (implementation wiring via DI).
+- Use the dependency graph `presentation -> domain <- data`; both outer layers
+  depend on Domain contracts, while DI wires implementations at the boundary.
 - **Domain must not import Data or Presentation.**
-- Data can depend on Domain contracts/entities.
+- Presentation orchestrates pages, widgets, and state; it dispatches actions and
+  renders states without owning data-source details.
+- Domain contains pure entities, repository contracts, and use cases. It must
+  not depend on Flutter, APIs, databases, or storage implementations.
+- Data contains datasources, models, and repository implementations. Datasources
+  handle external systems; repositories translate their results into Domain
+  contracts.
 
 ## 2) Feature boundaries
 - Keep feature internals inside `lib/features/<feature>/...`.
 - Expose feature entry points through `lib/features/<feature>/<feature>.dart`.
 - App-level modules (router/DI/app) should import feature barrel files, not deep paths.
 
+Canonical feature shape:
+
+```text
+lib/features/<feature>/
+  <feature>.dart
+  data/
+    datasources/
+    models/
+    repositories/
+  domain/
+    entities/
+    repositories/
+    usecases/
+  presentation/
+    bloc/
+    pages/
+    widgets/
+  di/
+    <feature>_injection.dart
+```
+
 ## 3) Result-based error flow
+
+```text
+datasource  -> throws typed exception
+repository  -> catches and maps to Failure -> returns Result.failure(...)
+use case    -> applies business rules -> returns Result<T>
+bloc/cubit  -> folds Result -> emits presentation state
+```
+
 - Repository contracts return `Future<Result<T>>` (or `Result<void>`), not thrown app-flow exceptions.
 - Data sources throw typed exceptions only (`ServerException`, `NetworkException`, etc).
 - Repository implementations map exceptions into `Result.failure(Failure)`.
-- Use cases forward typed result contracts.
+- Use cases orchestrate business rules and repository calls, then return typed
+  `Result` contracts to presentation.
 - BLoCs/Cubits consume `Result.fold(...)` for success/failure handling.
 
 ### 3a) File locations (mandatory)
@@ -104,14 +141,24 @@ Unknown exceptions map to `ServerFailure(e.toString())` as last resort.
 - Prefer one canonical import style per file; remove unused and duplicate imports.
 
 ## 7) Barrel policy
-- Feature barrel files (`lib/features/<feature>/<feature>.dart`) MUST export all public feature components:
-    - **Pages**: Main entry pages for the feature.
-    - **Widgets**: Any extracted components in `presentation/widgets`.
-    - **BLoCs/Cubits**: State management classes and their Events/States.
-    - **Domain**: Entities, Repositories (interfaces), and Use Cases.
+- Feature barrel files (`lib/features/<feature>/<feature>.dart`) export only
+  intentional public APIs:
+    - **Pages**: Main entry pages consumed by routing.
+    - **Widgets**: Components explicitly reused outside the feature.
+    - **BLoCs/Cubits**: Public state managers and their Events/States.
+    - **Domain**: Entities, repository contracts, and use cases needed by
+      other app-level modules.
     - **DI**: Feature-specific injection initializers.
 - App-level modules (Router, DI setup) should import these barrel files exclusively for a clean, flat import structure.
 - Do not use barrel exports to bypass layer boundaries internally.
+
+## 8) Routing boundary
+- `AppRouter` owns route definitions and authenticated shell composition; use a
+  `StatefulShellRoute` when the app has persistent tab navigation.
+- Provision route-scoped BLoCs/Cubits during route composition. Pages consume
+  the provided state managers and do not instantiate route-owned BLoCs.
+- Keep go_router behavior and tab-specific details in `references/navigation.md`
+  and route-level Bloc/widget details in `references/state.md`.
 
 ## 9) Definition of Done (architecture)
 - No layer-direction violations.

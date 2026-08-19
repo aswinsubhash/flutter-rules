@@ -15,8 +15,10 @@ explicitly, so it applies only when requested.
 ## What it covers
 
 - Clean architecture and feature boundaries
-- BLoC and state-management conventions
+- Effective Dart and Dart 3 language conventions
+- Cubit/BLoC state-management and testing conventions
 - Flutter UI, accessibility, and responsive design
+- Flutter layout-error diagnosis and debugging workflow
 - API clients, models, repositories, and error handling
 - Navigation and routing
 - Testing, analysis, documentation, and code quality
