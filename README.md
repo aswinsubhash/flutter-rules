@@ -45,7 +45,7 @@ with npm.
 **🪄 Prompt**
 
 ```text
-Install or update Flutter Rules globally for Codex, Claude Code, Cursor, and Devin Local by running `npx @aswinsubhash/flutter-rules@latest install all` or `npx @aswinsubhash/flutter-rules@latest update all`. Verify each tool, preserve any existing Cursor or Devin Local installation using the installer's backup behavior, and report missing CLIs without installing them automatically. Do not modify a project directory.
+Install or update Flutter Rules globally for Codex, Claude Code, Cursor, and Devin Local by running `npx @aswinsubhash/flutter-rules@latest install all` or `npx @aswinsubhash/flutter-rules@latest update all`. Verify each tool, report missing CLIs without installing them automatically, and do not modify a project directory.
 ```
 
 This installs the skill at user scope, making it available across projects in
@@ -101,7 +101,7 @@ npx @aswinsubhash/flutter-rules@latest update cursor
 **🪄 Prompt**
 
 ```text
-Install or update Flutter Rules for Cursor at user scope with `npx @aswinsubhash/flutter-rules@latest install cursor` or `npx @aswinsubhash/flutter-rules@latest update cursor`. Verify that `~/.cursor/skills/flutter-rules/SKILL.md` exists, preserve any existing installation using the installer's backup behavior, and do not modify Codex, Claude Code, or Devin.
+Install or update Flutter Rules for Cursor at user scope with `npx @aswinsubhash/flutter-rules@latest install cursor` or `npx @aswinsubhash/flutter-rules@latest update cursor`. Verify that `~/.cursor/skills/flutter-rules/SKILL.md` exists and do not modify Codex, Claude Code, or Devin.
 ```
 
 Invoke it with `/flutter-rules`.
@@ -126,7 +126,7 @@ npx @aswinsubhash/flutter-rules@latest update devin
 **🪄 Prompt**
 
 ```text
-Install or update Flutter Rules for Devin Local at user scope with `npx @aswinsubhash/flutter-rules@latest install devin` or `npx @aswinsubhash/flutter-rules@latest update devin`. Verify that `~/.agents/skills/flutter-rules/SKILL.md` exists, preserve any existing installation using the installer's backup behavior, and do not modify Codex, Claude Code, Cursor, or any project directory.
+Install or update Flutter Rules for Devin Local at user scope with `npx @aswinsubhash/flutter-rules@latest install devin` or `npx @aswinsubhash/flutter-rules@latest update devin`. Verify that `~/.agents/skills/flutter-rules/SKILL.md` exists and do not modify Codex, Claude Code, Cursor, or any project directory.
 ```
 
 Invoke it with `@skills:flutter-rules`.

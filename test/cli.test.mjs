@@ -5,6 +5,7 @@ import { join, resolve } from 'node:path';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { runCli, parseArgs } from '../lib/cli.mjs';
+import { installDirectory } from '../lib/fs-utils.mjs';
 
 const repoRoot = resolve(fileURLToPath(new URL('..', import.meta.url)));
 
@@ -40,6 +41,29 @@ test('argument parser removes dry-run flags without changing command values', ()
   });
 });
 
+test('failed replacement restores the existing directory and removes the temporary backup', () => {
+  const home = tempHome();
+  const destination = join(home, 'skill');
+  try {
+    mkdirSync(destination, { recursive: true });
+    writeFileSync(join(destination, 'SKILL.md'), 'old');
+
+    assert.throws(
+      () => installDirectory({
+        source: join(home, 'missing-source'),
+        destination,
+        now: new Date('2026-08-20T00:00:00.000Z'),
+      }),
+      /ENOENT/,
+    );
+
+    assert.equal(readFileSync(join(destination, 'SKILL.md'), 'utf8'), 'old');
+    assert.deepEqual(readdirSync(home).filter((name) => name.startsWith('skill.backup.')), []);
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
 test('setup devin redirects to user-level installation without touching the filesystem', async () => {
   const home = tempHome();
   const output = [];
@@ -59,7 +83,7 @@ test('setup devin redirects to user-level installation without touching the file
   }
 });
 
-test('devin install, update, backup, doctor, and uninstall are safe', async () => {
+test('devin install and update replace the skill without leaving backups', async () => {
   const home = tempHome();
   const runner = fakeRunner();
   const output = [];
@@ -84,7 +108,7 @@ test('devin install, update, backup, doctor, and uninstall are safe', async () =
     writeFileSync(cursorMarker, 'cursor');
     await runCli(['update', 'devin'], { home, runner, packageRoot: repoRoot });
     const backups = readdirSync(join(home, '.agents', 'skills')).filter((name) => name.startsWith('flutter-rules.backup.'));
-    assert.equal(backups.length, 1);
+    assert.equal(backups.length, 0);
     assert.equal(existsSync(join(destination, 'old-marker.txt')), false);
     assert.equal(readFileSync(cursorMarker, 'utf8'), 'cursor');
 
@@ -105,7 +129,7 @@ test('devin dry-run does not create a user skill', async () => {
   }
 });
 
-test('cursor install, update, backup, and uninstall are safe', async () => {
+test('cursor install and update replace the skill without leaving backups', async () => {
   const home = tempHome();
   const runner = fakeRunner();
   const destination = join(home, '.cursor', 'skills', 'flutter-rules');
@@ -121,7 +145,7 @@ test('cursor install, update, backup, and uninstall are safe', async () => {
     writeFileSync(devinMarker, 'devin');
     await runCli(['update', 'cursor'], { home, runner, packageRoot: repoRoot });
     const backups = readdirSync(join(home, '.cursor', 'skills')).filter((name) => name.startsWith('flutter-rules.backup.'));
-    assert.equal(backups.length, 1);
+    assert.equal(backups.length, 0);
     assert.equal(existsSync(join(destination, 'old-marker.txt')), false);
     assert.equal(readFileSync(devinMarker, 'utf8'), 'devin');
 
