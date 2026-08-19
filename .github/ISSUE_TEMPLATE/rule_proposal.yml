@@ -1,0 +1,48 @@
+name: Rule proposal
+description: Propose a new Flutter rule or a change to existing guidance.
+title: "[Rule]: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: Describe the recurring Flutter engineering problem this rule addresses.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed rule
+      description: Write the guidance as clearly and concretely as possible.
+    validations:
+      required: true
+  - type: textarea
+    id: rationale
+    attributes:
+      label: Rationale and tradeoffs
+      description: Explain why this should be shared guidance and where it may not apply.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Architecture
+        - State management
+        - UI and accessibility
+        - API and networking
+        - Navigation
+        - Quality and testing
+        - Security and persistence
+        - Git workflow
+        - Host integration
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Examples or supporting evidence
+      description: Add a minimal example, documentation, or another useful reference when available.

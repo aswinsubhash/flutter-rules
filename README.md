@@ -1,5 +1,9 @@
 # Flutter Rules
 
+[![Validate skill packages](https://github.com/aswinsubhash/flutter-rules/actions/workflows/validate.yml/badge.svg)](https://github.com/aswinsubhash/flutter-rules/actions/workflows/validate.yml)
+[![Latest tag](https://img.shields.io/github/v/tag/aswinsubhash/flutter-rules?sort=semver)](https://github.com/aswinsubhash/flutter-rules/tags)
+[![Agent Skills](https://img.shields.io/badge/Agent%20Skills-compatible-4c6ef5)](https://agentskills.io/specification)
+
 Reusable engineering guidance for building maintainable, production-ready
 Flutter applications with AI coding agents.
 
@@ -136,6 +140,13 @@ After changing the canonical skill, synchronize and validate the repository:
 ```
 
 Open a pull request with the canonical and generated changes together.
+
+## Community
+
+- Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a rule or opening a
+  pull request.
+- Use the issue forms to report a bug or propose a rule.
+- Report vulnerabilities privately by following [SECURITY.md](SECURITY.md).
 
 ## Compatibility
 
