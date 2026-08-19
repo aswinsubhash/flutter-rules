@@ -4,7 +4,7 @@ description: Apply reusable Flutter and Dart engineering rules for clean archite
 compatibility: Codex, Claude Code, Cursor, and Devin. Flutter and Dart tooling are required for validation commands.
 metadata:
   author: aswinsubhash
-  version: "1.1.0"
+  version: "1.1.1"
 ---
 
 # Flutter Rules

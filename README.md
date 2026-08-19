@@ -28,7 +28,7 @@ explicitly, so it applies only when requested.
 
 ## Global installation
 
-Install or update Flutter Rules for Codex, Claude Code, and Cursor with one
+Install or update Flutter Rules for Codex, Claude Code, Cursor, and Devin Local with one
 command:
 
 ```bash
@@ -45,12 +45,11 @@ with npm.
 **🪄 Prompt**
 
 ```text
-Install or update Flutter Rules globally for Codex, Claude Code, and Cursor by running `npx @aswinsubhash/flutter-rules@latest install all` or `npx @aswinsubhash/flutter-rules@latest update all`. Verify each tool, preserve any existing Cursor installation using the installer's backup behavior, and report missing CLIs without installing them automatically. Do not modify a project directory. Devin is configured separately through organization-level repository indexing.
+Install or update Flutter Rules globally for Codex, Claude Code, Cursor, and Devin Local by running `npx @aswinsubhash/flutter-rules@latest install all` or `npx @aswinsubhash/flutter-rules@latest update all`. Verify each tool, preserve any existing Cursor or Devin Local installation using the installer's backup behavior, and report missing CLIs without installing them automatically. Do not modify a project directory.
 ```
 
 This installs the skill at user scope, making it available across projects in
-each supported local tool. Devin uses organization-level repository discovery
-and is configured separately below.
+each supported local tool.
 
 ## Installation
 
@@ -109,21 +108,17 @@ Invoke it with `/flutter-rules`.
 
 ### Devin
 
-Devin does not provide a user-level global skill directory. Configure this
-dedicated repository once for organization-wide discovery:
+Install through the universal CLI at user scope:
 
 ```bash
-npx @aswinsubhash/flutter-rules@latest setup devin
+npx @aswinsubhash/flutter-rules@latest install devin
+npx @aswinsubhash/flutter-rules@latest update devin
 ```
-
-Then connect and index `https://github.com/aswinsubhash/flutter-rules` in your
-Devin organization. The committed `.devin/skills/flutter-rules/SKILL.md` is
-discovered across connected repositories.
 
 **🪄 Prompt**
 
 ```text
-Configure Flutter Rules for Devin organization-wide. Connect and index https://github.com/aswinsubhash/flutter-rules in the Devin organization, start a new session or ask Devin to reload available skills, and verify that `@skills:flutter-rules` invokes the skill. Do not modify any project directory.
+Install or update Flutter Rules for Devin Local at user scope with `npx @aswinsubhash/flutter-rules@latest install devin` or `npx @aswinsubhash/flutter-rules@latest update devin`. Verify that `~/.agents/skills/flutter-rules/SKILL.md` exists, preserve any existing installation using the installer's backup behavior, and do not modify Codex, Claude Code, Cursor, or any project directory.
 ```
 
 Invoke it with `@skills:flutter-rules`.
@@ -161,9 +156,6 @@ Use the universal CLI to update local tools:
 ```bash
 npx @aswinsubhash/flutter-rules@latest update all
 ```
-
-For Devin, push the updated repository and start a new session or ask Devin to
-reload available skills.
 
 If the CLI is unavailable, use the direct marketplace commands:
 
