@@ -33,7 +33,7 @@ test('argument parser removes dry-run flags without changing command values', ()
   });
 });
 
-test('setup devin prints organization instructions without touching the filesystem', async () => {
+test('setup devin redirects to user-level installation without touching the filesystem', async () => {
   const home = tempHome();
   const output = [];
   const before = readdirSync(home);
@@ -43,19 +43,55 @@ test('setup devin prints organization instructions without touching the filesyst
       log: (message) => output.push(message),
     });
     assert.equal(code, 0);
-    assert.match(output.join('\n'), /connect.*flutter-rules/i);
-    assert.match(output.join('\n'), /@skills:flutter-rules/);
+    assert.match(output.join('\n'), /setup devin.*deprecated/i);
+    assert.match(output.join('\n'), /flutter-rules install devin/);
+    assert.doesNotMatch(output.join('\n'), /organization|cloud|index/i);
     assert.deepEqual(readdirSync(home), before);
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
 });
 
-test('Devin filesystem commands are rejected in favor of organization setup', async () => {
-  await assert.rejects(
-    runCli(['install', 'devin']),
-    /flutter-rules setup devin/,
-  );
+test('devin install, update, backup, doctor, and uninstall are safe', async () => {
+  const home = tempHome();
+  const runner = fakeRunner();
+  const output = [];
+  const destination = join(home, '.agents', 'skills', 'flutter-rules');
+  try {
+    await runCli(['install', 'devin'], {
+      home,
+      runner,
+      packageRoot: repoRoot,
+      log: (message) => output.push(message),
+    });
+    assert.ok(existsSync(join(destination, 'SKILL.md')));
+    assert.match(readFileSync(join(destination, 'SKILL.md'), 'utf8'), /triggers: \["user"\]/);
+    assert.equal(existsSync(join(destination, 'agents')), false);
+
+    await runCli(['doctor', 'devin'], { home, runner, log: (message) => output.push(message) });
+    assert.match(output.join('\n'), /Devin Local skill is installed/);
+
+    writeFileSync(join(destination, 'old-marker.txt'), 'old');
+    await runCli(['update', 'devin'], { home, runner, packageRoot: repoRoot });
+    const backups = readdirSync(join(home, '.agents', 'skills')).filter((name) => name.startsWith('flutter-rules.backup.'));
+    assert.equal(backups.length, 1);
+    assert.equal(existsSync(join(destination, 'old-marker.txt')), false);
+
+    await runCli(['uninstall', 'devin'], { home, runner, packageRoot: repoRoot });
+    assert.equal(existsSync(destination), false);
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test('devin dry-run does not create a user skill', async () => {
+  const home = tempHome();
+  try {
+    await runCli(['install', 'devin', '--dry-run'], { home, packageRoot: repoRoot });
+    assert.equal(existsSync(join(home, '.agents')), false);
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
 });
 
 test('cursor install, update, backup, and uninstall are safe', async () => {
@@ -222,6 +258,7 @@ test('all continues after missing CLIs and reports a failed aggregate result', a
     assert.equal(code, 1);
     assert.equal(errors.length, 2);
     assert.ok(existsSync(join(home, '.cursor', 'skills', 'flutter-rules', 'SKILL.md')));
+    assert.ok(existsSync(join(home, '.agents', 'skills', 'flutter-rules', 'SKILL.md')));
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
@@ -233,6 +270,7 @@ test('version is synchronized across package, canonical skill, manifests, and ge
     'src/flutter-rules/SKILL.md',
     'plugins/flutter-rules/.codex-plugin/plugin.json',
     'claude-plugins/flutter-rules/.claude-plugin/plugin.json',
+    '.agents/skills/flutter-rules/SKILL.md',
     '.devin/skills/flutter-rules/SKILL.md',
     'plugins/flutter-rules/skills/flutter-rules/SKILL.md',
     'claude-plugins/flutter-rules/skills/flutter-rules/SKILL.md',

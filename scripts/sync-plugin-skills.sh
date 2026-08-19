@@ -20,19 +20,22 @@ trap 'rm -rf -- "$temporary_root"' EXIT
 codex_destination="$repo_root/plugins/flutter-rules/skills/flutter-rules"
 claude_destination="$repo_root/claude-plugins/flutter-rules/skills/flutter-rules"
 devin_destination="$repo_root/.devin/skills/flutter-rules"
+agents_destination="$repo_root/.agents/skills/flutter-rules"
 
 if [[ "$mode" == "--check" ]]; then
   diff -ru "$temporary_root/codex" "$codex_destination"
   diff -ru "$temporary_root/claude" "$claude_destination"
   diff -ru "$temporary_root/devin" "$devin_destination"
+  diff -ru "$temporary_root/devin" "$agents_destination"
   exit 0
 fi
 
-for destination in "$codex_destination" "$claude_destination" "$devin_destination"; do
+for destination in "$codex_destination" "$claude_destination" "$devin_destination" "$agents_destination"; do
   case "$destination" in
     "$repo_root/plugins/flutter-rules/skills/flutter-rules"|\
     "$repo_root/claude-plugins/flutter-rules/skills/flutter-rules"|\
-    "$repo_root/.devin/skills/flutter-rules") ;;
+    "$repo_root/.devin/skills/flutter-rules"|\
+    "$repo_root/.agents/skills/flutter-rules") ;;
     *)
       echo "Refusing to replace unexpected path: $destination" >&2
       exit 1
@@ -45,3 +48,4 @@ done
 cp -R "$temporary_root/codex" "$codex_destination"
 cp -R "$temporary_root/claude" "$claude_destination"
 cp -R "$temporary_root/devin" "$devin_destination"
+cp -R "$temporary_root/devin" "$agents_destination"
