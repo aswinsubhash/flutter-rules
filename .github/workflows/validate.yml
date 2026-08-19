@@ -1,0 +1,16 @@
+name: Validate skill packages
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Agent Skills validator
+        run: pipx install "git+https://github.com/agentskills/agentskills.git#subdirectory=skills-ref"
+      - name: Validate packages
+        run: ./scripts/validate.sh

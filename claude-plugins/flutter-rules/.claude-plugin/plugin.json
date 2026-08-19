@@ -1,0 +1,10 @@
+{
+  "name": "flutter-rules",
+  "description": "Reusable Flutter engineering rules for production projects.",
+  "version": "1.0.0",
+  "author": {
+    "name": "aswinsubhash"
+  },
+  "homepage": "https://github.com/aswinsubhash/flutter-rules",
+  "repository": "https://github.com/aswinsubhash/flutter-rules"
+}
