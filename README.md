@@ -177,6 +177,7 @@ Open a pull request with the canonical and generated changes together.
   pull request.
 - Use the issue forms to report a bug or propose a rule.
 - Report vulnerabilities privately by following [SECURITY.md](SECURITY.md).
+- Distributed under the [MIT License](LICENSE).
 
 ## Compatibility
 

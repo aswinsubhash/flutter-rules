@@ -30,4 +30,3 @@ mechanism.
 - `references/api.md`: Dio client baseline and request model rules.
 - `references/navigation.md`: tab navigation, scroll reset, and go_router standards.
 - `references/quality.md`: mandatory analysis, sensitive-storage verification, AI-code cleanup, README/ARCHITECTURE/`///` docs, and inline comment rules.
-- `references/git.md`: git safety rules.

@@ -2,8 +2,8 @@
 
 ## 12) Hardcoded string extraction & Localization policy
 - Do not introduce user-facing hardcoded strings directly in UI widgets.
-- **Apps supporting more than two languages**: Use ARB localization. Add all user-facing text to every supported language's `.arb` file and access it via `context.l10n`.
-- **Apps supporting one or two languages**: ARB setup is not required. Keep user-facing text in `lib/core/utils/app_strings.dart` and access it through `AppStrings`.
+- **Apps supporting more than one language**: Use ARB localization. Add all user-facing text to every supported language's `.arb` file and access it via `context.l10n`.
+- **Apps supporting one language**: ARB setup is not required. Keep user-facing text in `lib/core/utils/app_strings.dart` and access it through `AppStrings`.
 - For feature-specific non-user-facing constants with no cross-feature reuse, use a feature-level constants file.
 - Replace inline fallback text (e.g., generic error messages) with localized ARB entries or `AppStrings`, according to the app's language count.
 - Exceptions are allowed for technical protocol literals (API paths, MIME types, regex patterns, route paths) when they are not user-facing copy.
@@ -33,6 +33,7 @@
 ## 22) Color Constants Policy
 - **No hardcoded colors in UI**: All `Color(0xFF...)` values must be extracted to `lib/core/presentation/theme/app_colors.dart`.
 - Define meaningful semantic names (e.g., `paid`, `overdue`, `dispatched`) instead of generic names like `red1`, `green2`.
+- Do not repeat the same color value in a file. If a new semantic name needs an existing color, alias the existing constant instead of declaring another `Color(0xFF...)` value (for example, `static const warning = paid;`).
 - Reference colors via `AppColors.<name>` exclusively in presentation layer widgets.
 - Exceptions: `Colors.white`, `Colors.black`, `Colors.transparent`, and `Colors.grey` with index accessor are acceptable for simple cases.
 - Status/finance colors used across features must live in core `AppColors`.
@@ -45,6 +46,21 @@
 
 ## 24) ScreenUtil & Responsive Sizing Policy
 - Use `flutter_screenutil` for UI sizing after `ScreenUtilInit` is configured.
+- Configure `ScreenUtilInit` with the app's design size, split-screen support,
+  size-based rebuilds, and height-based font scaling:
+
+```dart
+ScreenUtilInit(
+  designSize: const Size(375, 812),
+  minTextAdapt: true,
+  splitScreenMode: true,
+  rebuildFactor: (old, data) => RebuildFactors.size(old, data),
+  fontSizeResolver: (fontSize, instance) =>
+      FontSizeResolvers.height(fontSize, instance),
+  child: const MyApp(),
+)
+```
+
 - Use `.w` for widths.
 - Use `.r` for horizontal padding/margins.
 - Use `.h` for heights and vertical padding/margins.
