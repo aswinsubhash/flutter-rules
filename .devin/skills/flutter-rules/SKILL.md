@@ -5,7 +5,7 @@ compatibility: Codex, Claude Code, Cursor, and Devin. Flutter and Dart tooling a
 triggers: ["user"]
 metadata:
   author: aswinsubhash
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # Flutter Rules

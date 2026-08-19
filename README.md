@@ -2,6 +2,7 @@
 
 [![Validate skill packages](https://github.com/aswinsubhash/flutter-rules/actions/workflows/validate.yml/badge.svg)](https://github.com/aswinsubhash/flutter-rules/actions/workflows/validate.yml)
 [![Latest tag](https://img.shields.io/github/v/tag/aswinsubhash/flutter-rules?sort=semver)](https://github.com/aswinsubhash/flutter-rules/tags)
+[![npm](https://img.shields.io/npm/v/%40aswinsubhash%2Fflutter-rules)](https://www.npmjs.com/package/@aswinsubhash/flutter-rules)
 [![Agent Skills](https://img.shields.io/badge/Agent%20Skills-compatible-4c6ef5)](https://agentskills.io/specification)
 
 Reusable engineering guidance for building maintainable, production-ready
@@ -27,23 +28,29 @@ explicitly, so it applies only when requested.
 
 ## Global installation
 
-Install Flutter Rules for Codex, Claude Code, and Cursor with one command:
+Install or update Flutter Rules for Codex, Claude Code, and Cursor with one
+command:
 
 ```bash
-git clone https://github.com/aswinsubhash/flutter-rules.git
-cd flutter-rules
-./scripts/install.sh all
+npx @aswinsubhash/flutter-rules@latest install all
+npx @aswinsubhash/flutter-rules@latest update all
+npx @aswinsubhash/flutter-rules@latest doctor all
+npx @aswinsubhash/flutter-rules@latest uninstall all
 ```
+
+Pass `--dry-run` to any command to preview it. The executable also supports
+`flutter-rules --help` and `flutter-rules --version` when installed globally
+with npm.
 
 **🪄 Prompt**
 
 ```text
-Install Flutter Rules for Codex, Claude Code, and Cursor at user scope from https://github.com/aswinsubhash/flutter-rules. Clone the repository into a temporary directory, run ./scripts/install.sh all, verify the installation for all three tools, and report the result for each tool. Preserve any existing installation using the installer's backup behavior. Do not install Devin because it requires a project path. Ask before installing any missing CLI or dependency, and remove only the temporary clone after a successful installation.
+Install or update Flutter Rules globally for Codex, Claude Code, and Cursor by running `npx @aswinsubhash/flutter-rules@latest install all` or `npx @aswinsubhash/flutter-rules@latest update all`. Verify each tool, preserve any existing Cursor installation using the installer's backup behavior, and report missing CLIs without installing them automatically. Do not modify a project directory. Devin is configured separately through organization-level repository indexing.
 ```
 
 This installs the skill at user scope, making it available across projects in
-each supported local tool. Devin uses repository or organization-level skill
-discovery and is configured separately below.
+each supported local tool. Devin uses organization-level repository discovery
+and is configured separately below.
 
 ## Installation
 
@@ -51,71 +58,72 @@ Use these options when installing for only one tool.
 
 ### Codex
 
-Add the repository as a Codex plugin marketplace and install the plugin:
+Install through the universal CLI:
 
 ```bash
-codex plugin marketplace add aswinsubhash/flutter-rules --ref main
-codex plugin add flutter-rules@flutter-rules
+npx @aswinsubhash/flutter-rules@latest install codex
+npx @aswinsubhash/flutter-rules@latest update codex
 ```
 
 **🪄 Prompt**
 
 ```text
-Install Flutter Rules for Codex from https://github.com/aswinsubhash/flutter-rules. Add aswinsubhash/flutter-rules as the flutter-rules Codex plugin marketplace from the main branch, then install flutter-rules@flutter-rules. If the marketplace already exists, upgrade it instead of failing. Verify that the plugin and $flutter-rules skill are available, report the result, and do not modify Claude Code, Cursor, or Devin.
+Install or update Flutter Rules for Codex with `npx @aswinsubhash/flutter-rules@latest install codex` or `npx @aswinsubhash/flutter-rules@latest update codex`. Verify that the `flutter-rules@flutter-rules` plugin and `$flutter-rules` skill are available, report the result, and do not modify Claude Code, Cursor, or Devin.
 ```
 
 Invoke it with `$flutter-rules`.
 
 ### Claude Code
 
-Add the marketplace and install the plugin for the current user:
+Install through the universal CLI at user scope:
 
 ```bash
-claude plugin marketplace add aswinsubhash/flutter-rules
-claude plugin install flutter-rules@flutter-rules --scope user
+npx @aswinsubhash/flutter-rules@latest install claude
+npx @aswinsubhash/flutter-rules@latest update claude
 ```
 
 **🪄 Prompt**
 
 ```text
-Install Flutter Rules for Claude Code from https://github.com/aswinsubhash/flutter-rules. Add the repository as a Claude plugin marketplace, install flutter-rules@flutter-rules at user scope, and handle an existing marketplace or plugin by updating it safely. Verify that /flutter-rules:flutter-rules is available, report the result, and do not modify Codex, Cursor, or Devin.
+Install or update Flutter Rules for Claude Code with `npx @aswinsubhash/flutter-rules@latest install claude` or `npx @aswinsubhash/flutter-rules@latest update claude`. Verify that `/flutter-rules:flutter-rules` is available, report the result, and do not modify Codex, Cursor, or Devin.
 ```
 
 Invoke it with `/flutter-rules:flutter-rules`.
 
 ### Cursor
 
-Clone the repository and run the Cursor installer:
+Install through the universal CLI at user scope:
 
 ```bash
-git clone https://github.com/aswinsubhash/flutter-rules.git
-cd flutter-rules
-./scripts/install.sh cursor
+npx @aswinsubhash/flutter-rules@latest install cursor
+npx @aswinsubhash/flutter-rules@latest update cursor
 ```
 
 **🪄 Prompt**
 
 ```text
-Install Flutter Rules for Cursor at user scope from https://github.com/aswinsubhash/flutter-rules. Clone the repository into a temporary directory, run ./scripts/install.sh cursor, and verify that ~/.cursor/skills/flutter-rules/SKILL.md exists. Preserve any existing installation using the installer's backup behavior, report the result, and remove only the temporary clone after a successful installation. Do not modify Codex, Claude Code, or Devin.
+Install or update Flutter Rules for Cursor at user scope with `npx @aswinsubhash/flutter-rules@latest install cursor` or `npx @aswinsubhash/flutter-rules@latest update cursor`. Verify that `~/.cursor/skills/flutter-rules/SKILL.md` exists, preserve any existing installation using the installer's backup behavior, and do not modify Codex, Claude Code, or Devin.
 ```
 
 Invoke it with `/flutter-rules`.
 
 ### Devin
 
-Connect this repository to Devin for organization-wide discovery, or install
-the skill into a single project:
+Devin does not provide a user-level global skill directory. Configure this
+dedicated repository once for organization-wide discovery:
 
 ```bash
-git clone https://github.com/aswinsubhash/flutter-rules.git
-cd flutter-rules
-./scripts/install.sh devin /absolute/path/to/project
+npx @aswinsubhash/flutter-rules@latest setup devin
 ```
+
+Then connect and index `https://github.com/aswinsubhash/flutter-rules` in your
+Devin organization. The committed `.devin/skills/flutter-rules/SKILL.md` is
+discovered across connected repositories.
 
 **🪄 Prompt**
 
 ```text
-Install Flutter Rules for Devin in the current project from https://github.com/aswinsubhash/flutter-rules. Record the current project's absolute path, clone the repository into a temporary directory, and from that clone run ./scripts/install.sh devin with the project path. Verify that the project contains .devin/skills/flutter-rules/SKILL.md, preserve any existing installation using the installer's backup behavior, report the result, and remove only the temporary clone after success. Do not modify Codex, Claude Code, or Cursor.
+Configure Flutter Rules for Devin organization-wide. Connect and index https://github.com/aswinsubhash/flutter-rules in the Devin organization, start a new session or ask Devin to reload available skills, and verify that `@skills:flutter-rules` invokes the skill. Do not modify any project directory.
 ```
 
 Invoke it with `@skills:flutter-rules`.
@@ -148,16 +156,30 @@ Flutter request.
 
 ## Updating
 
-For Codex, refresh the marketplace and reinstall the plugin:
+Use the universal CLI to update local tools:
 
 ```bash
-codex plugin marketplace upgrade flutter-rules
-codex plugin add flutter-rules@flutter-rules
+npx @aswinsubhash/flutter-rules@latest update all
 ```
 
-For Claude Code, update the marketplace and plugin through Claude's plugin
-manager. For Cursor or project-local Devin installations, pull the latest
-repository changes and rerun the corresponding installer.
+For Devin, push the updated repository and start a new session or ask Devin to
+reload available skills.
+
+If the CLI is unavailable, use the direct marketplace commands:
+
+```bash
+# Initial install
+codex plugin marketplace add aswinsubhash/flutter-rules --ref main
+codex plugin add flutter-rules@flutter-rules
+claude plugin marketplace add aswinsubhash/flutter-rules
+claude plugin install flutter-rules@flutter-rules --scope user
+
+# Update
+codex plugin marketplace upgrade flutter-rules
+codex plugin add flutter-rules@flutter-rules
+claude plugin marketplace update flutter-rules
+claude plugin update flutter-rules@flutter-rules --scope user
+```
 
 ## Contributing
 
