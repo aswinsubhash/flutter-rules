@@ -16,6 +16,8 @@ python3 -m json.tool "$repo_root/claude-plugins/flutter-rules/.claude-plugin/plu
 
 grep -q '^disable-model-invocation: true$' "$temporary_root/dist/claude/flutter-rules/SKILL.md"
 grep -q '^disable-model-invocation: true$' "$temporary_root/dist/cursor/flutter-rules/SKILL.md"
+grep -q '^triggers: \["user"\]$' "$temporary_root/dist/cursor/flutter-rules/SKILL.md"
+grep -q '^disable-model-invocation: true$' "$temporary_root/dist/devin/flutter-rules/SKILL.md"
 grep -q '^triggers: \["user"\]$' "$temporary_root/dist/devin/flutter-rules/SKILL.md"
 grep -q '^  allow_implicit_invocation: false$' "$temporary_root/dist/codex/flutter-rules/agents/openai.yaml"
 

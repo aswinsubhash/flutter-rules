@@ -41,27 +41,31 @@ if [[ "$platform" == "codex" ]]; then
 fi
 
 case "$platform" in
-  claude|cursor)
-    platform_field="disable-model-invocation: true"
+  claude)
+    platform_field_one="disable-model-invocation: true"
+    platform_field_two=""
     ;;
-  devin)
-    platform_field='triggers: ["user"]'
+  cursor|devin)
+    platform_field_one="disable-model-invocation: true"
+    platform_field_two='triggers: ["user"]'
     ;;
 esac
 
 temporary_file="$destination/SKILL.md.tmp"
-awk -v field="$platform_field" '
+awk -v field_one="$platform_field_one" -v field_two="$platform_field_two" '
   NR == 1 && $0 == "---" {
     in_frontmatter = 1
     print
     next
   }
   in_frontmatter && !inserted && $0 ~ /^metadata:/ {
-    print field
+    print field_one
+    if (field_two != "") print field_two
     inserted = 1
   }
   in_frontmatter && !inserted && $0 == "---" {
-    print field
+    print field_one
+    if (field_two != "") print field_two
     inserted = 1
     in_frontmatter = 0
   }

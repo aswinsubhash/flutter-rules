@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { test } from 'node:test';
@@ -24,6 +24,13 @@ function fakeRunner({ available = [], responses = [] } = {}) {
 
 function tempHome() {
   return mkdtempSync(join(tmpdir(), 'flutter-rules-test-'));
+}
+
+function readExplicitSkill(path) {
+  const content = readFileSync(path, 'utf8');
+  assert.match(content, /^disable-model-invocation: true$/m);
+  assert.match(content, /^triggers: \["user"\]$/m);
+  return content;
 }
 
 test('argument parser removes dry-run flags without changing command values', () => {
@@ -57,6 +64,7 @@ test('devin install, update, backup, doctor, and uninstall are safe', async () =
   const runner = fakeRunner();
   const output = [];
   const destination = join(home, '.agents', 'skills', 'flutter-rules');
+  const cursorMarker = join(home, '.cursor', 'skills', 'flutter-rules', 'cursor-marker.txt');
   try {
     await runCli(['install', 'devin'], {
       home,
@@ -65,17 +73,20 @@ test('devin install, update, backup, doctor, and uninstall are safe', async () =
       log: (message) => output.push(message),
     });
     assert.ok(existsSync(join(destination, 'SKILL.md')));
-    assert.match(readFileSync(join(destination, 'SKILL.md'), 'utf8'), /triggers: \["user"\]/);
+    readExplicitSkill(join(destination, 'SKILL.md'));
     assert.equal(existsSync(join(destination, 'agents')), false);
 
     await runCli(['doctor', 'devin'], { home, runner, log: (message) => output.push(message) });
     assert.match(output.join('\n'), /Devin Local skill is installed/);
 
     writeFileSync(join(destination, 'old-marker.txt'), 'old');
+    mkdirSync(join(home, '.cursor', 'skills', 'flutter-rules'), { recursive: true });
+    writeFileSync(cursorMarker, 'cursor');
     await runCli(['update', 'devin'], { home, runner, packageRoot: repoRoot });
     const backups = readdirSync(join(home, '.agents', 'skills')).filter((name) => name.startsWith('flutter-rules.backup.'));
     assert.equal(backups.length, 1);
     assert.equal(existsSync(join(destination, 'old-marker.txt')), false);
+    assert.equal(readFileSync(cursorMarker, 'utf8'), 'cursor');
 
     await runCli(['uninstall', 'devin'], { home, runner, packageRoot: repoRoot });
     assert.equal(existsSync(destination), false);
@@ -98,17 +109,21 @@ test('cursor install, update, backup, and uninstall are safe', async () => {
   const home = tempHome();
   const runner = fakeRunner();
   const destination = join(home, '.cursor', 'skills', 'flutter-rules');
+  const devinMarker = join(home, '.agents', 'skills', 'flutter-rules', 'devin-marker.txt');
   try {
     await runCli(['install', 'cursor'], { home, runner, packageRoot: repoRoot });
     assert.ok(existsSync(join(destination, 'SKILL.md')));
-    assert.match(readFileSync(join(destination, 'SKILL.md'), 'utf8'), /disable-model-invocation: true/);
+    readExplicitSkill(join(destination, 'SKILL.md'));
     assert.equal(existsSync(join(destination, 'agents')), false);
 
     writeFileSync(join(destination, 'old-marker.txt'), 'old');
+    mkdirSync(join(home, '.agents', 'skills', 'flutter-rules'), { recursive: true });
+    writeFileSync(devinMarker, 'devin');
     await runCli(['update', 'cursor'], { home, runner, packageRoot: repoRoot });
     const backups = readdirSync(join(home, '.cursor', 'skills')).filter((name) => name.startsWith('flutter-rules.backup.'));
     assert.equal(backups.length, 1);
     assert.equal(existsSync(join(destination, 'old-marker.txt')), false);
+    assert.equal(readFileSync(devinMarker, 'utf8'), 'devin');
 
     await runCli(['uninstall', 'cursor'], { home, runner, packageRoot: repoRoot });
     assert.equal(existsSync(destination), false);
@@ -257,8 +272,45 @@ test('all continues after missing CLIs and reports a failed aggregate result', a
     });
     assert.equal(code, 1);
     assert.equal(errors.length, 2);
-    assert.ok(existsSync(join(home, '.cursor', 'skills', 'flutter-rules', 'SKILL.md')));
-    assert.ok(existsSync(join(home, '.agents', 'skills', 'flutter-rules', 'SKILL.md')));
+    const cursorSkill = join(home, '.cursor', 'skills', 'flutter-rules', 'SKILL.md');
+    const devinSkill = join(home, '.agents', 'skills', 'flutter-rules', 'SKILL.md');
+    assert.equal(readExplicitSkill(cursorSkill), readExplicitSkill(devinSkill));
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test('filesystem doctors report synchronized copies and actionable drift', async () => {
+  const home = tempHome();
+  const runner = fakeRunner();
+  const cursorSkill = join(home, '.cursor', 'skills', 'flutter-rules', 'SKILL.md');
+  const devinSkill = join(home, '.agents', 'skills', 'flutter-rules', 'SKILL.md');
+  try {
+    await runCli(['install', 'cursor'], { home, runner, packageRoot: repoRoot });
+    await runCli(['install', 'devin'], { home, runner, packageRoot: repoRoot });
+
+    const synchronized = [];
+    await runCli(['doctor', 'cursor'], { home, runner, log: (message) => synchronized.push(message) });
+    await runCli(['doctor', 'devin'], { home, runner, log: (message) => synchronized.push(message) });
+    assert.match(synchronized.join('\n'), /copies are synchronized/);
+    assert.match(synchronized.join('\n'), /shared \.agents path/);
+
+    const original = readFileSync(devinSkill, 'utf8');
+    writeFileSync(devinSkill, original.replace('triggers: ["user"]\n', ''));
+    const metadataDrift = [];
+    await runCli(['doctor', 'cursor'], { home, runner, log: (message) => metadataDrift.push(message) });
+    assert.match(metadataDrift.join('\n'), /invocation metadata differ.*update all/i);
+
+    writeFileSync(devinSkill, original.replace(/version: "[^"]+"/, 'version: "0.0.0"'));
+    const versionDrift = [];
+    await runCli(['doctor', 'cursor'], { home, runner, log: (message) => versionDrift.push(message) });
+    assert.match(versionDrift.join('\n'), /versions differ.*update all/i);
+
+    writeFileSync(devinSkill, `${original}\n`);
+    const contentDrift = [];
+    await runCli(['doctor', 'devin'], { home, runner, log: (message) => contentDrift.push(message) });
+    assert.match(contentDrift.join('\n'), /copies differ.*update all/i);
+    assert.ok(existsSync(cursorSkill));
   } finally {
     rmSync(home, { recursive: true, force: true });
   }

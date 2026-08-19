@@ -106,6 +106,14 @@ Install or update Flutter Rules for Cursor at user scope with `npx @aswinsubhash
 
 Invoke it with `/flutter-rules`.
 
+When Cursor and Devin Local are installed together, Cursor may display the
+shared `~/.agents/skills/flutter-rules` path instead of the dedicated
+`~/.cursor/skills/flutter-rules` path. Cursor discovers both user-level skill
+directories. The installer renders both copies with matching explicit-only
+invocation metadata, so either discovered path behaves the same. Run
+`flutter-rules doctor all` to detect drift and `flutter-rules update all` to
+synchronize the copies.
+
 ### Devin
 
 Install through the universal CLI at user scope:

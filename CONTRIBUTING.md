@@ -43,12 +43,11 @@ README when installation, invocation, or supported-host behavior changes.
 ## Release
 
 Do not push release work directly to `main`. Create a versioned branch such as
-`release/v1.1.0`, commit the versioned changes there, create the matching tag
-`v1.1.0`, and push that branch and tag. Open a pull request from the versioned
-branch into `main`. After the pull request is merged, publish the GitHub
-release for the existing tag; the publish workflow verifies that the tag
-matches `package.json`, runs the tests and repository validation, and publishes
-with npm provenance.
+`release/v1.1.2`, commit and push the versioned changes, and open a pull request
+from that branch into `main`. After the pull request is merged, create the
+matching tag `v1.1.2` on the merged `main` commit and publish its GitHub release.
+The publish workflow verifies that the tag matches `package.json`, runs the
+tests and repository validation, and publishes with npm provenance.
 
 Before publishing, create a granular npm access token with package write access
 and 2FA bypass enabled, then save it as the repository's `NPM_TOKEN` Actions
