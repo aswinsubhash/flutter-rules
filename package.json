@@ -9,7 +9,9 @@
   "files": [
     "bin/",
     "lib/",
-    "src/flutter-rules/",
+    "src/flutter-rules/SKILL.md",
+    "src/flutter-rules/agents/openai.yaml",
+    "src/flutter-rules/references/*.md",
     "LICENSE",
     "README.md"
   ],
@@ -41,5 +43,11 @@
     "cursor",
     "devin",
     "agent-skills"
-  ]
+  ],
+  "dependencies": {
+    "cross-spawn": "^7.0.6"
+  },
+  "devDependencies": {
+    "tar": "^7.5.22"
+  }
 }

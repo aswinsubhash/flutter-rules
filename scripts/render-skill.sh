@@ -30,45 +30,4 @@ if [[ -e "$destination" ]]; then
   exit 1
 fi
 
-mkdir -p "$destination/references"
-cp "$source_dir/SKILL.md" "$destination/SKILL.md"
-cp -R "$source_dir/references/." "$destination/references/"
-
-if [[ "$platform" == "codex" ]]; then
-  mkdir -p "$destination/agents"
-  cp "$source_dir/agents/openai.yaml" "$destination/agents/openai.yaml"
-  exit 0
-fi
-
-case "$platform" in
-  claude)
-    platform_field_one="disable-model-invocation: true"
-    platform_field_two=""
-    ;;
-  cursor|devin)
-    platform_field_one="disable-model-invocation: true"
-    platform_field_two='triggers: ["user"]'
-    ;;
-esac
-
-temporary_file="$destination/SKILL.md.tmp"
-awk -v field_one="$platform_field_one" -v field_two="$platform_field_two" '
-  NR == 1 && $0 == "---" {
-    in_frontmatter = 1
-    print
-    next
-  }
-  in_frontmatter && !inserted && $0 ~ /^metadata:/ {
-    print field_one
-    if (field_two != "") print field_two
-    inserted = 1
-  }
-  in_frontmatter && !inserted && $0 == "---" {
-    print field_one
-    if (field_two != "") print field_two
-    inserted = 1
-    in_frontmatter = 0
-  }
-  { print }
-' "$destination/SKILL.md" > "$temporary_file"
-mv "$temporary_file" "$destination/SKILL.md"
+exec node "$repo_root/lib/render-skill.mjs" "$source_dir" "$platform" "$destination"

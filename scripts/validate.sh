@@ -25,7 +25,7 @@ if command -v skills-ref >/dev/null 2>&1; then
   skills-ref validate "$repo_root/src/flutter-rules"
 elif command -v pipx >/dev/null 2>&1; then
   pipx run \
-    --spec 'git+https://github.com/agentskills/agentskills.git#subdirectory=skills-ref' \
+    --spec 'git+https://github.com/agentskills/agentskills.git@69ef37e9424c0a7ea9dd2293b559e43ec8176379#subdirectory=skills-ref' \
     skills-ref validate "$repo_root/src/flutter-rules"
 else
   echo "skills-ref and pipx not found; skipped the official Agent Skills validator."

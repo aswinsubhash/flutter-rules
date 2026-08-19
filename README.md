@@ -38,9 +38,11 @@ npx @aswinsubhash/flutter-rules@latest doctor all
 npx @aswinsubhash/flutter-rules@latest uninstall all
 ```
 
-Pass `--dry-run` to any command to preview it. The executable also supports
-`flutter-rules --help` and `flutter-rules --version` when installed globally
-with npm.
+Pass `--dry-run` to any command to validate and preview it. The executable also
+supports `flutter-rules --help` and `flutter-rules --version` when installed
+globally with npm. Set `FLUTTER_RULES_MARKETPLACE_SOURCE` to a Git source or
+local marketplace path when adding the Codex and Claude Code marketplace. An
+existing marketplace must be reconfigured explicitly before changing its source.
 
 **🪄 Prompt**
 
