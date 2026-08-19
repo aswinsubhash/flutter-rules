@@ -6,6 +6,7 @@ import { spawnSync } from 'node:child_process';
 const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const result = spawnSync(npmCommand, ['pack', '--dry-run', '--json'], {
   encoding: 'utf8',
+  shell: process.platform === 'win32',
   stdio: ['ignore', 'pipe', 'pipe'],
 });
 
