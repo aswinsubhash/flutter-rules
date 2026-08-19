@@ -33,7 +33,7 @@ test('argument parser removes dry-run flags without changing command values', ()
   });
 });
 
-test('setup devin prints organization instructions without touching the filesystem', async () => {
+test('setup devin redirects to user-level installation without touching the filesystem', async () => {
   const home = tempHome();
   const output = [];
   const before = readdirSync(home);
@@ -43,8 +43,9 @@ test('setup devin prints organization instructions without touching the filesyst
       log: (message) => output.push(message),
     });
     assert.equal(code, 0);
-    assert.match(output.join('\n'), /connect.*flutter-rules/i);
-    assert.match(output.join('\n'), /@skills:flutter-rules/);
+    assert.match(output.join('\n'), /setup devin.*deprecated/i);
+    assert.match(output.join('\n'), /flutter-rules install devin/);
+    assert.doesNotMatch(output.join('\n'), /organization|cloud|index/i);
     assert.deepEqual(readdirSync(home), before);
   } finally {
     rmSync(home, { recursive: true, force: true });
