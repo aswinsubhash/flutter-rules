@@ -1,0 +1,45 @@
+{
+  "name": "@aswinsubhash/flutter-rules",
+  "version": "1.1.0",
+  "description": "Universal installer for the Flutter Rules agent skill.",
+  "type": "module",
+  "bin": {
+    "flutter-rules": "./bin/flutter-rules.mjs"
+  },
+  "files": [
+    "bin/",
+    "lib/",
+    "src/flutter-rules/",
+    "LICENSE",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test",
+    "pack:check": "node scripts/assert-package.mjs",
+    "validate": "npm test && ./scripts/validate.sh"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aswinsubhash/flutter-rules.git"
+  },
+  "homepage": "https://github.com/aswinsubhash/flutter-rules",
+  "bugs": {
+    "url": "https://github.com/aswinsubhash/flutter-rules/issues"
+  },
+  "license": "MIT",
+  "keywords": [
+    "flutter",
+    "dart",
+    "codex",
+    "claude-code",
+    "cursor",
+    "devin",
+    "agent-skills"
+  ]
+}

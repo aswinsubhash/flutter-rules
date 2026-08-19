@@ -40,5 +40,19 @@ Keep each pull request focused on one concern. Explain the problem, the reason
 for the proposed rule or tooling change, and how you verified it. Update the
 README when installation, invocation, or supported-host behavior changes.
 
+## Release
+
+Do not push release work directly to `main`. Create a versioned branch such as
+`release/v1.1.0`, commit the versioned changes there, create the matching tag
+`v1.1.0`, and push that branch and tag. Open a pull request from the versioned
+branch into `main`. After the pull request is merged, publish the GitHub
+release for the existing tag; the publish workflow verifies that the tag
+matches `package.json`, runs the tests and repository validation, and publishes
+with npm provenance.
+
+Before publishing, create a granular npm access token with package write access
+and 2FA bypass enabled, then save it as the repository's `NPM_TOKEN` Actions
+secret.
+
 By contributing, you agree that your contribution will be distributed under
 the repository's license.
