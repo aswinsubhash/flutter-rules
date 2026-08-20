@@ -10,14 +10,13 @@ Flutter applications with AI coding agents.
 
 Flutter Rules gives Codex, Claude Code, Cursor, and Devin a shared set of
 principles for clean architecture, state management, UI, networking,
-navigation, testing, security, and Git workflows. The skill is invoked
-explicitly, so it applies only when requested.
+navigation, testing, and security. The skill applies only when you invoke it.
 
 ## What it covers
 
 - Clean architecture and feature boundaries
 - Effective Dart and Dart 3 language conventions
-- Cubit/BLoC state-management and testing conventions
+- Cubit/BLoC state management and testing conventions
 - Flutter UI, accessibility, and responsive design
 - Flutter layout-error diagnosis and debugging workflow
 - API clients, models, repositories, and error handling
@@ -27,30 +26,29 @@ explicitly, so it applies only when requested.
 
 ## Install
 
-Install Flutter Rules automatically:
+Install Flutter Rules globally:
 
 ```bash
-npx @aswinsubhash/flutter-rules@latest install all
+npx @aswinsubhash/flutter-rules@latest install
 ```
 
-Or install it for a specific agent:
+Claude Code is optional. Install its integration explicitly when needed:
 
 ```bash
-npx @aswinsubhash/flutter-rules@latest install codex
 npx @aswinsubhash/flutter-rules@latest install claude
-npx @aswinsubhash/flutter-rules@latest install cursor
-npx @aswinsubhash/flutter-rules@latest install devin
 ```
 
 Preview an installation without changing anything:
 
 ```bash
-npx @aswinsubhash/flutter-rules@latest install all --dry-run
+npx @aswinsubhash/flutter-rules@latest install --dry-run
 ```
 
-## Use
+Users upgrading from v1 can run the same install command. Verified legacy
+Flutter Rules integrations are migrated automatically after the new install is
+healthy.
 
-Flutter Rules runs only when you invoke it explicitly.
+## Use
 
 | Agent | Invocation |
 | --- | --- |
@@ -71,25 +69,31 @@ Start a new agent session after installation so the skill is discovered.
 
 ## Manage
 
-Update Flutter Rules:
+Update every installed Flutter Rules integration:
 
 ```bash
-npx @aswinsubhash/flutter-rules@latest update all
+npx @aswinsubhash/flutter-rules@latest update
 ```
 
-Check that it is installed correctly:
+Check installation health:
 
 ```bash
-npx @aswinsubhash/flutter-rules@latest doctor all
+npx @aswinsubhash/flutter-rules@latest doctor
 ```
 
-Uninstall it:
+Get machine-readable health information:
 
 ```bash
-npx @aswinsubhash/flutter-rules@latest uninstall all
+npx @aswinsubhash/flutter-rules@latest doctor --json
 ```
 
-Use `--help` to see all commands and targets:
+Remove Flutter Rules and all managed integrations:
+
+```bash
+npx @aswinsubhash/flutter-rules@latest uninstall
+```
+
+Use `--help` to see all commands:
 
 ```bash
 npx @aswinsubhash/flutter-rules@latest --help

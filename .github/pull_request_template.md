@@ -17,7 +17,7 @@ List the commands or checks you ran.
 ## Checklist
 
 - [ ] I edited the canonical source in `src/flutter-rules` when changing the skill.
-- [ ] I ran `./scripts/sync-plugin-skills.sh` after changing the skill.
-- [ ] I ran `./scripts/validate.sh` and resolved all available validation failures.
+- [ ] I ran `npm test`, `npm run validate`, and `npm run pack:check`.
+- [ ] I confirmed Skills CLI discovers exactly one `flutter-rules` skill.
 - [ ] I updated installation or invocation documentation when behavior changed.
 - [ ] I did not include secrets, credentials, or proprietary project details.

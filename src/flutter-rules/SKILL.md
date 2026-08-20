@@ -2,9 +2,10 @@
 name: flutter-rules
 description: Apply reusable Flutter and Dart engineering rules for clean architecture, Cubit/Bloc, UI, APIs, Dart 3, navigation, quality, and secure persistence. Use only when explicitly invoked.
 compatibility: Codex, Claude Code, Cursor, and Devin. Flutter and Dart tooling are required for validation commands.
+disable-model-invocation: true
 metadata:
   author: aswinsubhash
-  version: "1.1.2"
+  version: "2.0.0"
 ---
 
 # Flutter Rules

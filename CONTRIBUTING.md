@@ -2,52 +2,50 @@
 
 Thank you for helping improve Flutter Rules. Contributions can clarify an
 existing rule, add a well-scoped rule, improve host compatibility, or fix the
-installation and packaging tools.
+installer and migration tooling.
 
 ## Before you start
 
-- Search the existing issues and pull requests before opening a new one.
-- Open a rule proposal for changes that affect the guidance or its scope.
+- Search existing issues and pull requests.
+- Open a rule proposal for changes that affect guidance or scope.
 - Keep rules practical, testable, and independent of proprietary projects.
-- Preserve explicit invocation for Codex, Claude Code, Cursor, and Devin.
+- Preserve explicit invocation for every supported agent.
 
 ## Development workflow
 
 1. Fork and clone the repository.
 2. Create a focused branch.
-3. Edit the canonical skill in `src/flutter-rules`.
-4. Synchronize the host-specific packages:
+3. Edit the canonical skill only under `src/flutter-rules`.
+4. Run the verification suite:
 
    ```bash
-   ./scripts/sync-plugin-skills.sh
+   npm test
+   npm run validate
+   npm run pack:check
    ```
 
-5. Validate the repository:
+5. Commit the canonical source, tests, and user-facing documentation together.
 
-   ```bash
-   ./scripts/validate.sh
-   ```
-
-6. Commit both the canonical and generated changes.
-
-Do not edit files under `plugins/flutter-rules/skills`,
-`claude-plugins/flutter-rules/skills`, or `.devin/skills` directly. They are
-generated from the canonical source.
+The installer uses the exact `skills@1.5.15` dependency to retain Node 20
+compatibility. Integration tests set `FLUTTER_RULES_SKILL_SOURCE` to a local or
+branch source so they never depend on an unreleased production tag.
 
 ## Pull requests
 
-Keep each pull request focused on one concern. Explain the problem, the reason
-for the proposed rule or tooling change, and how you verified it. Update the
-README when installation, invocation, or supported-host behavior changes.
+Keep each pull request focused on one concern. Explain the problem, why the
+change is needed, and how it was verified. Update the README when installation,
+invocation, or supported-host behavior changes.
 
 ## Release
 
 Do not push release work directly to `main`. Create a versioned branch such as
-`release/v1.1.2`, commit and push the versioned changes, and open a pull request
-from that branch into `main`. After the pull request is merged, create the
-matching tag `v1.1.2` on the merged `main` commit and publish its GitHub release.
-The publish workflow verifies that the tag matches `package.json`, runs the
-tests and repository validation, and publishes with npm provenance.
+`release/v2.0.0`, commit and push the versioned changes, and open a pull request
+into `main`. After merge, create the matching tag on the merged commit and
+publish its GitHub release.
+
+The publish workflow verifies that the release tag matches `package.json`, the
+canonical skill version, and the Skills CLI tagged-source discovery check before
+publishing with npm provenance.
 
 Before publishing, create a granular npm access token with package write access
 and 2FA bypass enabled, then save it as the repository's `NPM_TOKEN` Actions

@@ -1,6 +1,6 @@
 {
   "name": "@aswinsubhash/flutter-rules",
-  "version": "1.1.2",
+  "version": "2.0.0",
   "description": "Universal installer for the Flutter Rules agent skill.",
   "type": "module",
   "bin": {
@@ -45,9 +45,7 @@
     "agent-skills"
   ],
   "dependencies": {
-    "cross-spawn": "^7.0.6"
-  },
-  "devDependencies": {
-    "tar": "^7.5.22"
+    "cross-spawn": "7.0.6",
+    "skills": "1.5.15"
   }
 }
