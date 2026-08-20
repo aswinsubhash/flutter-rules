@@ -33,12 +33,17 @@ abstract final class Env {
   - exposes `Dio get dio`
   - uses 60-second connect/receive/send timeouts
   - adds full request and response logging, including headers and bodies, only
-    inside `if (kDebugMode)`; disables HTTP logging in profile and release modes
+    inside `if (kDebugMode)`, with non-production credentials and data, and to a
+    local console only; never forwards these logs to monitoring, and disables
+    HTTP logging in profile and release modes
   - supports `get`, `post`, `put`, `patch`, and `delete`
   - supports `CancelToken` and progress callbacks where Dio supports them
-  - extracts response body `message` when present and maps to `ServerException`
-  - maps `DioExceptionType.unknown` and `connectionError` to `NetworkException`
-  - maps all other Dio errors to `ServerException`
+  - extracts a safe response body `message` when present for server failures
+  - maps `connectionError` to `NetworkException`; inspect the underlying cause
+    before classifying `unknown` because it is not necessarily a network error
+  - preserves cancellation, timeout, certificate, transform, and bad-response
+    semantics through the project's appropriate typed exceptions instead of
+    collapsing every Dio error into `ServerException`
 - Do not add auth headers, token interceptors, `shared_preferences`, or `get_it` unless current task needs them.
 - Do not copy monitoring hooks (for example `AppMonitoring`) unless the project already has that module.
 - Add only required dependencies, usually `dio` for the baseline client.

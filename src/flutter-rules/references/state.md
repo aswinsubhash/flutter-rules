@@ -18,8 +18,9 @@
 - For the enum approach, use lifecycle values such as `initial`, `loading`,
   `success`, and `failure` and render with `switch (state.status)`.
 - For sealed states, handle every subtype with an exhaustive `switch (state)`.
-- Mark state classes `@immutable`, extend `Equatable`, and include every
-  relevant field in `props`.
+- Mark state classes `@immutable` and use the project's existing value-equality
+  approach. When the project uses `Equatable`, include every relevant field in
+  `props`.
 - Always emit a new state instance. Copy `List` and `Map` values before
   changing them; never mutate collections held by an emitted state.
 - Extract each status or state branch into a focused private builder so page
@@ -47,7 +48,9 @@
   must reside in a `Cubit` or `Bloc`.
 
 ## 18) Logic Isolation (Private Methods)
-- **Isolate Business Logic**: Presentation pages must isolate validation, complex logic, and event dispatching into dedicated private methods (e.g., `_onLogin`, `_onRegister`, `_onSubmitted`).
+- Presentation pages may isolate input collection and event dispatch in dedicated
+  private methods (for example, `_onLogin` or `_onSubmitted`). Business
+  validation and decisions must remain in the Cubit, Bloc, or domain layer.
 - **Clean Build Methods**: Avoid writing multi-line logic blocks directly within the `build` method or inside inline callbacks like `onPressed` or `onTap`.
 - **No computed values in build**: Derived or calculated values (totals, intervals, max values, etc.) must be extracted to a private method (e.g., `_computeMetrics()`) and never computed inline inside `build`.
 - **Chart data objects**: When using fl_chart, each data object (`LineChartData`, `FlGridData`, `FlTitlesData`, `LineChartBarData`, etc.) must be constructed in its own private method. Never build them inline inside `build`.
@@ -73,8 +76,10 @@
   genuinely shared.
 
 ## 19a) Connectivity BLoC Baseline (Project Setup)
-- During basic project setup, add `internet_checker_plus` and create `lib/core/bloc/connectivity/` with `ConnectivityBloc`, `ConnectivityEvent`, and `ConnectivityState`.
-- Use `InternetCheckerPlus.onStatusChange()` and `InternetCheckerPlus.check()` with a short offline debounce (3 seconds) to avoid flickering offline UI.
+- Add connectivity monitoring only when the task requires it. Reuse the
+  project's existing checker, state manager, and folder conventions.
+- If adopting `internet_checker_plus` is explicitly in scope, use its status
+  stream and current-status check rather than adding a parallel abstraction.
 - `ConnectivityState` starts as connected (`isConnected = true`) and exposes only the current connection flag until product UI needs more state.
 - Provide `ConnectivityBloc` once at the app root above `MaterialApp.router`; do not create it inside pages.
 - Export the bloc from `core/core.dart` so app/root widgets can consume it consistently.
@@ -149,12 +154,14 @@ return Scaffold(
 - Override `onChange`, `onError`, or `onTransition` only when the additional
   diagnostics are useful for the current feature.
 - Configure a global `BlocObserver` once at the app root when global state or
-  error observation is required. Never log tokens, credentials, or sensitive
-  state fields.
+  error observation is required. Bloc diagnostics must not log tokens,
+  credentials, or sensitive state fields; the debug-only HTTP logging exception
+  in `references/api.md` does not apply to state diagnostics.
 
 ## 23) Testing Cubits and Blocs
-- Use `bloc_test` for state-emission assertions and the project's standard
-  mocking library (such as `mocktail`) for repository dependencies.
+- Use the project's existing state-test and mocking tools. Use `bloc_test` for
+  state-emission assertions when it is already available or adding it is within
+  task scope.
 - Group tests by the class under test, name cases with `should`, and cover the
   initial state plus success, loading, and failure transitions.
 - Close every Cubit or Bloc in `tearDown` and register fallback values for
@@ -164,7 +171,7 @@ return Scaffold(
 
 ## 24) Common State-Management Pitfalls
 - Do not emit the same state instance twice; meaningful state changes require a
-  new instance and complete `Equatable.props`.
+  new instance and complete value-equality fields.
 - Do not mutate state lists or maps in place.
 - Do not call `context.watch` from callbacks; use `context.read` there.
 - Do not put repository calls, validation, or business decisions in widgets.

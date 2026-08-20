@@ -1,11 +1,17 @@
 # Navigation Rules
 
-## 14) Tab Navigation & Scroll Reset
-- For pages within a `StatefulShellRoute` (bottom tab bar), content must reset to the top when the tab becomes active.
-- Detect index changes inside `didChangeDependencies` by listening to `StatefulNavigationShell.of(context).currentIndex`. **Do not perform this check inside the `build` method.**
-- Use a `ScrollController` with `keepScrollOffset: false` and `jumpTo(0)` inside a `WidgetsBinding.instance.addPostFrameCallback` when the index match is detected.
+## 14) Tab navigation and scroll position
+- Preserve each tab's navigation and scroll state by default when using
+  `StatefulShellRoute` or another persistent-tab pattern.
+- Reset scroll only when product behavior requires it, commonly when the active
+  tab is reselected rather than whenever it becomes active.
+- When implementing reset behavior, use the page's existing `ScrollController`,
+  check that it has clients, and defer the jump until layout is complete.
 
-## 19) Navigation Standard (go_router)
-- **Strict go_router Usage**: Always use go_router extension methods (context.push(), context.go(), context.pop(), etc.) for all navigation and dialog/bottom-sheet dismissals.
-- **Avoid Navigator API**: Never use the static Navigator.of(context) or Navigator.push/pop methods directly.
-- **Consistent Routing**: Ensure all routes and sub-routes are defined within the AppRouter configuration to maintain a centralized and predictable deep-linking structure.
+## 19) Navigation APIs
+- Follow the project's existing routing approach. When it uses go_router, prefer
+  `context.go`, `context.push`, and `context.pop` for application routes.
+- Use `Navigator` when working with local dialogs, bottom sheets, overlays,
+  nested navigators, or another specific navigator that is not an app route.
+- Keep routes requiring deep links or restoration in router configuration;
+  transient local overlays do not need route definitions.

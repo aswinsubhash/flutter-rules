@@ -30,6 +30,13 @@ test('value should start at 0', () {
 - Use one focused test file per substantial class or feature behavior.
 - Use `setUp` for shared construction and `tearDown` for cleanup. Close
   Cubits, Blocs, streams, and controllers created by a test.
+- Follow the project's existing test organization. When none exists, mirror
+  the `lib/` feature and layer structure under `test/` so production code and
+  its tests are easy to locate.
+- Keep shared fixtures, fakes, and test helpers under `test/support/`. Keep
+  end-to-end tests in the directory configured by the project's chosen tooling.
+- Organize by feature behavior instead of strict source-file mirroring when a
+  test intentionally spans multiple classes or files.
 
 ## Test Types
 
@@ -42,11 +49,13 @@ test('value should start at 0', () {
 
 ## Mocking
 
-- Mock at the repository or service boundary, not the method under test and not
-  below the boundary at the HTTP or database implementation.
-- A stubbed call should drive real production logic and an observable
-  assertion; do not assert only that a mock returns the value configured in the
-  test.
+- Mock or fake external dependencies at the boundary of the unit under test;
+  never mock the behavior being tested.
+- When testing a Cubit, Bloc, or use case, mock its repository or service. When
+  testing a repository, mock or fake its datasource, HTTP client, database, or
+  storage dependency.
+- A stubbed dependency should drive real production logic and an observable
+  assertion; do not assert only that a mock returns its configured value.
 - Use `mocktail` when it is the project's chosen mocking library and register
   custom fallback values in `setUpAll` before passing them to `any()`.
 
@@ -58,3 +67,5 @@ test('value should start at 0', () {
   scheduled frames must complete.
 - Prefer stable `Key` finders for localized or dynamic content; use text finders
   when the displayed copy itself is the behavior under test.
+- Keep widget-test fixtures minimal. Prefer Flutter primitives unless a custom
+  design-system component is the behavior under test.

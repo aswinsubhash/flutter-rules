@@ -1,10 +1,12 @@
 # Code Quality Rules
 
 ## 7) Mandatory Analysis (Flutter Analyze)
-- **Always** run `flutter analyze` after every new implementation or refactor.
+- Run `flutter analyze` after every new implementation or refactor.
 - Run:
   `flutter analyze` or `flutter analyze lib/app lib/core lib/features`
-- Ensure **zero** analyzer issues before finalizing or notifying the user.
+- Ensure the current changes introduce zero analyzer issues. Fix issues caused
+  by those changes; report unrelated pre-existing issues without modifying them
+  unless explicitly requested.
 
 ## 8) Sensitive storage verification
 - Add or update tests whenever session persistence changes.

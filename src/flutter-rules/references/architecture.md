@@ -47,7 +47,9 @@ use case    -> applies business rules -> returns Result<T>
 bloc/cubit  -> folds Result -> emits presentation state
 ```
 
-- Repository contracts return `Future<Result<T>>` (or `Result<void>`), not thrown app-flow exceptions.
+- Repository contracts return `Future<Result<T>>`, not thrown app-flow exceptions.
+  For commands without response data, follow the project's established no-value
+  success convention.
 - Data sources throw typed exceptions only (`ServerException`, `NetworkException`, etc).
 - Repository implementations map exceptions into `Result.failure(Failure)`.
 - Use cases orchestrate business rules and repository calls, then return typed
@@ -59,43 +61,30 @@ bloc/cubit  -> folds Result -> emits presentation state
 - `lib/core/error/failures.dart` — all `Failure` subclasses.
 - `lib/core/error/exceptions.dart` — all `Exception` subclasses.
 
-### 3b) `Result<T>` shape (mandatory)
-Single class with private constructor and named factories. **Do NOT** use `sealed class` + `Success<T>`/`FailureResult<T>` subclasses.
+### 3b) `Result<T>` representation
+- Preserve the project's existing `Result` representation when it provides
+  explicit success and failure variants.
+- When introducing `Result<T>`, use either a sealed success/failure hierarchy or
+  another representation with an explicit variant discriminator.
+- Never infer success or failure from payload nullability. The representation
+  must support nullable success values and the project's no-value success
+  convention without unsafe casts.
+- Expose exhaustive handling through `fold`, pattern matching, or an equivalent
+  project-standard API.
 
-```dart
-class Result<T> {
-  final T? data;
-  final Failure? failure;
+### 3c) `Failure` representation
+- Preserve the project's existing failure base type and value-equality approach.
+  When it uses `Equatable`, include every identity-relevant field in `props`.
+- Keep only broadly shared failures in core, such as server, cache, network, and
+  session failures. Define feature-specific failures inside the owning feature.
 
-  const Result._({this.data, this.failure});
-
-  const Result.success(T value) : this._(data: value);
-  const Result.failure(Failure value) : this._(failure: value);
-
-  bool get isSuccess => data != null;
-  bool get isFailure => failure != null;
-
-  R fold<R>(
-    R Function(Failure failure) onFailure,
-    R Function(T data) onSuccess,
-  ) {
-    if (failure != null) return onFailure(failure!);
-    return onSuccess(data as T);
-  }
-}
-```
-
-### 3c) `Failure` shape (mandatory)
-- Abstract base extends `Equatable` with `final String message` and `props => [message]`.
-- All concrete failures extend `Failure` and forward `super.message` via `super` parameter.
-- Canonical failures (extend list as needed, do not rename):
-  - `ServerFailure`, `CacheFailure`, `NetworkFailure`, `SessionExpiredFailure`, `VehicleNotFoundFailure`.
-
-### 3d) `Exception` shape (mandatory)
-- Each exception `implements Exception`, exposes `final String message` when applicable.
-- `NetworkException` defaults message to `AppStrings.noInternetConnection`.
-- Canonical exceptions (extend list as needed, do not rename):
-  - `ServerException`, `CacheException`, `NetworkException`, `VehicleNotFoundException`, `SessionInvalidatedException`.
+### 3d) `Exception` representation
+- Use typed exceptions at data boundaries and preserve the project's existing
+  exception contracts.
+- Exceptions may carry safe technical details or stable reason codes, but must
+  not import `AppStrings`, generated localization classes, or other UI copy.
+- Keep broadly shared server, cache, network, and session exceptions in core;
+  define feature-specific exceptions inside the owning feature.
 
 ### 3e) Exception → Failure mapping convention
 Repository implementations catch typed exceptions and map 1:1:
@@ -106,9 +95,10 @@ Repository implementations catch typed exceptions and map 1:1:
 | `CacheException` | `CacheFailure(...)` |
 | `NetworkException` | `NetworkFailure(e.message)` |
 | `SessionInvalidatedException` | `SessionExpiredFailure(e.message)` |
-| `VehicleNotFoundException` | `VehicleNotFoundFailure()` |
 
-Unknown exceptions map to `ServerFailure(e.toString())` as last resort.
+Map feature-specific exceptions inside their owning repository. Presentation
+maps failure types or reason codes to localized user-facing copy; never display
+raw exception text.
 
 ## 4) DI composition
 - Each feature owns a `di/<feature>_injection.dart` initializer.

@@ -15,6 +15,8 @@ UI packages.
 - Keep generated app localizations in the host app. App-specific feature
   folders may use `context.l10n`, but reusable packages must not import the
   host app's generated localization class.
+- Core and data exceptions or failures must not own localized UI copy.
+  Presentation maps typed failures or reason codes to localized messages.
 - Technical protocol literals such as API paths, MIME types, regex patterns,
   and route paths are not user-facing copy and may remain constants.
 

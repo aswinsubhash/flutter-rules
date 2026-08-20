@@ -17,10 +17,14 @@ mechanism.
 
 1. Inspect the existing implementation before changing code.
 2. Read only the reference files relevant to the task.
-3. Apply the loaded rules before introducing new patterns.
+3. Apply relevant rules only to code required by the current task. Do not
+   modify unrelated code or retrofit untouched legacy code.
 4. Prefer existing project conventions and helpers over new abstractions.
-5. Always run `flutter analyze` after every implementation or refactor and
-   resolve all issues before finalizing.
+5. Do not move files, reorganize features or tests, add dependencies, or make
+   architecture-wide changes unless the task requires it or the user approves.
+6. Run `flutter analyze` after implementation or refactoring. Fix issues
+   introduced by the current changes; report unrelated pre-existing issues
+   without modifying them unless explicitly requested.
 
 ## References
 
