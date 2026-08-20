@@ -27,13 +27,13 @@ explicitly, so it applies only when requested.
 
 ## Install
 
-Install Flutter Rules for all supported agents:
+Install Flutter Rules automatically:
 
 ```bash
 npx @aswinsubhash/flutter-rules@latest install all
 ```
 
-No plugin marketplace setup is required. Install for a specific agent instead:
+Or install it for a specific agent:
 
 ```bash
 npx @aswinsubhash/flutter-rules@latest install codex

@@ -87,8 +87,10 @@ test('command runner resolves and executes platform command shims', () => {
   try {
     writeFileSync(executable, windows ? '@echo off\r\n<nul set /p "=%~1"\r\n' : '#!/bin/sh\nprintf \'%s\' "$1"\n');
     if (!windows) chmodSync(executable, 0o755);
+    mkdirSync(join(home, 'directory-command'));
     const runner = createCommandRunner({ env });
     assert.equal(runner.has('fixture'), true);
+    assert.equal(runner.has('directory-command'), false);
     assert.deepEqual(runner.run('fixture', ['hello world'], { quiet: true }), {
       code: 0,
       stdout: 'hello world',
@@ -316,20 +318,41 @@ test('Claude migration preserves project-scoped plugins and installs the standal
   }
 });
 
-test('standalone dry-run validates and previews both physical destinations', async () => {
+test('standalone dry-run skips an unavailable Claude installation', async () => {
   const home = tempHome();
   const output = [];
   try {
     const code = await runCli(['install', 'all', '--dry-run'], {
       home,
+      runner: fakeRunner(),
       packageRoot: repoRoot,
       log: (message) => output.push(message),
     });
     assert.equal(code, 0);
     assert.match(output.join('\n'), /DRY RUN: render .*\.agents.*flutter-rules/);
-    assert.match(output.join('\n'), /DRY RUN: render .*\.claude.*flutter-rules/);
+    assert.match(output.join('\n'), /claude: Skipped because the Claude Code CLI was not detected/);
+    assert.doesNotMatch(output.join('\n'), /DRY RUN: render .*\.claude/);
     assert.equal(existsSync(join(home, '.agents')), false);
     assert.equal(existsSync(join(home, '.claude')), false);
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test('all skips an empty Claude destination when Claude is unavailable', async () => {
+  const home = tempHome();
+  const destination = join(home, '.claude', 'skills', 'flutter-rules');
+  const output = [];
+  try {
+    mkdirSync(destination, { recursive: true });
+    await runCli(['install', 'all'], {
+      home,
+      runner: fakeRunner(),
+      packageRoot: repoRoot,
+      log: (message) => output.push(message),
+    });
+    assert.equal(existsSync(join(destination, 'SKILL.md')), false);
+    assert.match(output.join('\n'), /Skipped because the Claude Code CLI was not detected/);
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
@@ -388,15 +411,27 @@ test('shared rendering filters unsupported files while retaining Codex policy', 
   }
 });
 
-test('all installs and uninstalls exactly two standalone destinations without host CLIs', async () => {
+test('all installs only detected tools and explicit Claude install remains available', async () => {
   const home = tempHome();
+  const output = [];
   const runner = fakeRunner();
   try {
-    assert.equal(await runCli(['install', 'all'], { home, runner, packageRoot: repoRoot }), 0);
+    assert.equal(await runCli(['install', 'all'], {
+      home,
+      runner,
+      packageRoot: repoRoot,
+      log: (message) => output.push(message),
+    }), 0);
     assert.ok(existsSync(join(home, '.agents', 'skills', 'flutter-rules', 'SKILL.md')));
-    assert.ok(existsSync(join(home, '.claude', 'skills', 'flutter-rules', 'SKILL.md')));
-    assert.equal(existsSync(join(home, '.cursor')), false);
-    assert.deepEqual(runner.calls, []);
+    assert.equal(existsSync(join(home, '.claude')), false);
+    assert.match(output.join('\n'), /Skipped because the Claude Code CLI was not detected/);
+
+    await runCli(['install', 'claude'], { home, runner, packageRoot: repoRoot });
+    const claudeDestination = join(home, '.claude', 'skills', 'flutter-rules');
+    assert.ok(existsSync(join(claudeDestination, 'SKILL.md')));
+    writeFileSync(join(claudeDestination, 'old-marker.txt'), 'old');
+    await runCli(['update', 'all'], { home, runner, packageRoot: repoRoot });
+    assert.equal(existsSync(join(claudeDestination, 'old-marker.txt')), false);
 
     assert.equal(await runCli(['uninstall', 'all'], { home, runner, packageRoot: repoRoot }), 0);
     assert.equal(existsSync(join(home, '.agents', 'skills', 'flutter-rules')), false);
@@ -406,9 +441,21 @@ test('all installs and uninstalls exactly two standalone destinations without ho
   }
 });
 
+test('all installs Claude when the Claude CLI is detected', async () => {
+  const home = tempHome();
+  const runner = fakeRunner({ available: ['claude'] });
+  try {
+    assert.equal(await runCli(['install', 'all'], { home, runner, packageRoot: repoRoot }), 0);
+    assert.ok(existsSync(join(home, '.agents', 'skills', 'flutter-rules', 'SKILL.md')));
+    assert.ok(existsSync(join(home, '.claude', 'skills', 'flutter-rules', 'SKILL.md')));
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
 test('doctors validate standalone metadata, Codex policy, and legacy duplicates', async () => {
   const home = tempHome();
-  const runner = fakeRunner();
+  const runner = fakeRunner({ available: ['claude'] });
   const agentsSkill = join(home, '.agents', 'skills', 'flutter-rules', 'SKILL.md');
   const policy = join(home, '.agents', 'skills', 'flutter-rules', 'agents', 'openai.yaml');
   const version = JSON.parse(readFileSync(join(repoRoot, 'package.json'), 'utf8')).version;
