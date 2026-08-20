@@ -32,7 +32,8 @@ abstract final class Env {
   - constructor accepts optional `Dio? dio` and `String? baseUrl`
   - exposes `Dio get dio`
   - uses 60-second connect/receive/send timeouts
-  - adds full `LogInterceptor` in debug mode
+  - adds full request and response logging, including headers and bodies, only
+    inside `if (kDebugMode)`; disables HTTP logging in profile and release modes
   - supports `get`, `post`, `put`, `patch`, and `delete`
   - supports `CancelToken` and progress callbacks where Dio supports them
   - extracts response body `message` when present and maps to `ServerException`

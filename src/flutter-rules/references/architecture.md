@@ -119,8 +119,10 @@ Unknown exceptions map to `ServerFailure(e.toString())` as last resort.
   onboarding state, and approved non-secret display data.
 - Use secure storage for authentication and sensitive identifiers, including
   access/refresh tokens, user IDs, credentials, and encryption keys.
-- Never copy secure values into `SharedPreferences`, logs, URLs, analytics, or
-  crash breadcrumbs.
+- Never copy secure values into `SharedPreferences`, URLs, analytics, or crash
+  breadcrumbs. Debug-only HTTP logs may include headers and bodies only with
+  non-production credentials and data, must remain local, and must be disabled
+  in profile and release modes.
 - Keep storage access behind a session/storage abstraction and hydrate it
   through DI before feature code reads session state.
 - Treat storage migrations and logout as security boundaries: invalidate

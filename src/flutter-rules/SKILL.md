@@ -5,7 +5,7 @@ compatibility: Codex, Claude Code, Cursor, and Devin. Flutter and Dart tooling a
 disable-model-invocation: true
 metadata:
   author: aswinsubhash
-  version: "2.0.1"
+  version: "2.0.2"
 ---
 
 # Flutter Rules
@@ -19,8 +19,8 @@ mechanism.
 2. Read only the reference files relevant to the task.
 3. Apply the loaded rules before introducing new patterns.
 4. Prefer existing project conventions and helpers over new abstractions.
-5. Run `flutter analyze` after meaningful code changes when possible.
-6. Do not perform risky git operations unless explicitly requested.
+5. Always run `flutter analyze` after every implementation or refactor and
+   resolve all issues before finalizing.
 
 ## References
 
