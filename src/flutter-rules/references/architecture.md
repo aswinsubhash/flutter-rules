@@ -14,8 +14,8 @@
 
 ## Feature boundaries
 - Keep feature internals inside `lib/features/<feature>/...`.
-- Expose feature entry points through `lib/features/<feature>/<feature>.dart`.
-- App-level modules (router/DI/app) should import feature barrel files, not deep paths.
+- Where the project establishes a public feature entry point, keep it at `lib/features/<feature>/<feature>.dart`.
+- At external/app boundaries, use public feature barrels when that is the project's established import policy; do not deep-import feature internals.
 
 Canonical feature shape:
 
@@ -120,29 +120,26 @@ raw exception text.
   values have been successfully validated.
 
 ## Import hygiene
-- Inside a feature layer, prefer precise relative imports over broad cross-layer barrels.
+- Preserve the project's existing import policy and canonical import style.
+- Inside a feature or core implementation, prefer narrow, explicit imports over broad barrels such as `core/core.dart` or `core/packages.dart`.
 - Avoid importing another feature's internals directly.
-- Avoid `core.dart` when a narrow import is sufficient in domain/data layers.
-
-### Import extraction policy (mandatory)
-- **Feature Presentation layer**: use `core/core.dart` for shared UI/packages/utils and feature-local relative imports.
-- **Core Presentation layer**: use `core/packages.dart` + local relative imports.
-- **Domain/Data layers**: use narrow, explicit imports only (no broad `core.dart`).
-- **App layer (router/di/app)**: import ONLY through feature public barrels (`features/<feature>/<feature>.dart`), never deep internal feature paths.
-- **Cross-feature imports**: Avoid where possible; if necessary, import via the target feature's barrel file.
 - Prefer one canonical import style per file; remove unused and duplicate imports.
 
+### Import boundary policy
+- **Feature/Core implementation layers**: use narrow imports that expose each dependency; do not require a broad core barrel in Presentation, Domain, or Data.
+- **App and external feature boundaries**: use public feature barrels when the project has established them; otherwise follow the project's public import convention without deep-importing feature internals.
+- **Cross-feature imports**: avoid them where possible. When necessary, depend on the target feature's intentional public API using its established boundary import.
+
 ## Barrel policy
-- Feature barrel files (`lib/features/<feature>/<feature>.dart`) export only
-  intentional public APIs:
+- When feature barrel files (`lib/features/<feature>/<feature>.dart`) are established, export only intentional public APIs:
     - **Pages**: Main entry pages consumed by routing.
     - **Widgets**: Components explicitly reused outside the feature.
     - **BLoCs/Cubits**: Public state managers and their Events/States.
     - **Domain**: Entities, repository contracts, and use cases needed by
       other app-level modules.
     - **DI**: Feature-specific injection initializers.
-- App-level modules (Router, DI setup) should import these barrel files exclusively for a clean, flat import structure.
-- Do not use barrel exports to bypass layer boundaries internally.
+- At app or external boundaries, prefer these public barrels when established; they are not required as the exclusive import form when project policy uses another public entry point.
+- Never use barrel imports or exports to bypass layer boundaries.
 
 ## Routing boundary
 - `AppRouter` owns route definitions and authenticated shell composition; use a
@@ -155,6 +152,6 @@ raw exception text.
 ## Definition of Done (architecture)
 - No layer-direction violations.
 - Repository/usecase signatures use `Result` consistently.
-- Router/DI imports use feature public entry points.
+- Router/DI imports follow the project's public feature-boundary policy without deep-importing feature internals.
 - Feature DI initializer exists for implemented features.
-- All POST/PUT/PATCH operations use dedicated request models.
+- Existing request modeling is preserved; reused, validated, non-trivial, and project-standard POST/PUT/PATCH payloads use dedicated request models, while simple one-off payloads may follow a project convention that allows inline maps.

@@ -27,13 +27,17 @@
 
 ## Documentation & comments
 
-Document the project in three places only:
+At minimum, document the project in these core locations:
 
 | Layer | File / form | Purpose |
 |-------|-------------|---------|
 | Setup | `README.md` | What the app is, how to run/build (flavors), stack, locales, env/API |
 | Architecture | `ARCHITECTURE.md` | Folder structure, layer rules, Result/DI/routing — keep to ~1 page |
 | Code contracts | `///` on public APIs | What each public type/method means for callers |
+
+These recommended core locations are not exclusive. When the project needs them,
+add `CONTRIBUTING.md`, `SECURITY.md`, ADRs, migration guides, API docs,
+changelogs, runbooks, or other focused documentation.
 
 Do not put deep implementation detail in README. Do not put run/build instructions only in code comments.
 

@@ -20,9 +20,13 @@
 
 ## RTL Compatibility Mandatory
 - All UI must be built to be RTL-compatible by default.
-- Use directional properties exclusively: `EdgeInsetsDirectional` instead of `EdgeInsets`, `AlignmentDirectional` instead of `Alignment`, and `PositionedDirectional` inside Stacks.
-- Avoid hardcoded `left` or `right` values for padding, margins, or positioning.
-- Ensure icons that convey direction (e.g., arrows) mirror correctly using Flutter's built-in directionality support.
+- When a value means start or end, use directional APIs such as
+  `EdgeInsetsDirectional`, `AlignmentDirectional`, and `PositionedDirectional`.
+  Do not encode start/end semantics with hardcoded `left` or `right` values.
+- Symmetric values, direction-neutral alignment, and intentionally physical
+  coordinates may use non-directional APIs when that preserves their meaning.
+- Ensure icons that convey direction (e.g., arrows) mirror correctly using
+  Flutter's built-in directionality support or an equivalent project convention.
 
 ## Loading indicators
 - Reuse the project's existing loading components and conventions. If the
@@ -56,46 +60,31 @@
 - Apply these rules only when the project already uses `flutter_screenutil` or
   its adoption is explicitly in scope. Otherwise preserve the project's current
   responsive-sizing approach.
-- Configure `ScreenUtilInit` from the app's design specifications and existing
-  conventions. A possible configuration is:
-
-```dart
-ScreenUtilInit(
-  designSize: const Size(375, 812),
-  minTextAdapt: true,
-  splitScreenMode: true,
-  rebuildFactor: (old, data) => RebuildFactors.size(old, data),
-  fontSizeResolver: (fontSize, instance) =>
-      FontSizeResolvers.height(fontSize, instance),
-  child: const MyApp(),
-)
-```
-
-- Use `.w` for widths.
-- Use `.r` for horizontal padding/margins.
-- Use `.h` for heights and vertical padding/margins.
-- Use `.r` for border radius and circular dimensions.
-- Use `.sp` for all explicit `fontSize` values.
-- When the project uses ScreenUtil spacing extensions, prefer `.verticalSpace`
-  and `.horizontalSpace` for responsive gaps. Use `SizedBox` when an exact,
-  constant, or project-standard gap is clearer.
-- Default page horizontal padding is `16.r` unless a specific design requires otherwise.
+- When ScreenUtil is already used, follow the project's existing design-system
+  configuration for `designSize`, scaling behavior, unit extensions, and
+  spacing tokens. Do not introduce a different reference size or scaling policy
+  as a universal default.
+- Use `.w`, `.h`, `.r`, `.sp`, and ScreenUtil spacing extensions according to
+  the project's established conventions rather than assigning universal units
+  to widths, heights, padding, margins, radii, gaps, or font sizes.
+- Use the design system's page padding and app-bar title-spacing tokens or
+  established values; do not introduce a fixed ScreenUtil value as the default.
 
 ## App Header Policy
 - Use a fixed `AppBar` for persistent screen branding when the title/logo must remain visible during scroll.
 - Do not place persistent logo/title headers inside the scroll body.
-- App bar horizontal title spacing should match page horizontal padding (`16.r` by default).
+- App bar horizontal title spacing should match the page horizontal padding
+  defined by the project's design system or existing convention.
 
 ## Text Field Focus Policy
 - Pages with text fields should support tap-outside-to-unfocus so the keyboard dismisses naturally.
 
 ## Method Ordering in Widget Classes
-- **Mandatory order** for all `StatelessWidget` and `StatefulWidget` classes:
-  1. Event dispatchers (`_onToggle`, `_onSave`, etc.)
-  2. BLoC listener handlers (`_onStatusChanged`, etc.)
-  3. Async actions that open sheets/dialogs (`_openEditor`, etc.)
-  4. Private builder helpers for sub-widgets (`_buildActionSheet`, `_buildDetailsSection`, etc.)
-  5. Main body builder (`_buildBody`)
-  6. `@override build` — always last
-- For `StatefulWidget`: lifecycle overrides (`initState`, `dispose`) come before event dispatchers; `build` is still always last.
-- Never place `build` before private helper methods.
+- Follow the project's existing member-ordering convention for `StatelessWidget`
+  and `StatefulWidget` classes.
+- For new code when no convention exists, an optional grouping is lifecycle
+  overrides, event dispatchers and listener handlers, async UI actions, private
+  builder helpers, the main body helper, and `build`.
+- The suggested grouping does not require `build` to be last. Do not reorder
+  existing methods solely to match it; make ordering changes only when they are
+  part of a substantive refactor or improve clarity.

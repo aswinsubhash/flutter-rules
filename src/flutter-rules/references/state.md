@@ -45,11 +45,17 @@
 - Presentation pages may isolate input collection and event dispatch in dedicated
   private methods (for example, `_onLogin` or `_onSubmitted`). Business
   validation and decisions must remain in the Cubit, Bloc, or domain layer.
-- **Clean Build Methods**: Avoid writing multi-line logic blocks directly within the `build` method or inside inline callbacks like `onPressed` or `onTap`.
-- **No computed values in build**: Derived or calculated values (totals, intervals, max values, etc.) must be extracted to a private method (e.g., `_computeMetrics()`) and never computed inline inside `build`.
-- **Chart data objects**: When using fl_chart, each data object (`LineChartData`, `FlGridData`, `FlTitlesData`, `LineChartBarData`, etc.) must be constructed in its own private method. Never build them inline inside `build`.
-- **Method Signatures**: Private logic methods should typically accept `BuildContext` and the relevant BLoC `State` as parameters to ensure consistent and reliable access to the latest data and context.
-- This practice improves code readability, makes UI components purely orchestration-focused, and facilitates easier debugging of functional logic.
+- Keep `build` and inline callbacks readable. Cheap, obvious derived values may
+  remain local to `build`; extract computations when they are complex,
+  expensive, reused, or obscure the widget structure.
+- When using `fl_chart`, extract chart configuration only when its size or
+  complexity harms readability. Group related configuration where useful; do
+  not require one private method for every chart data object.
+- Helpers should accept the explicit values they need. Pass `BuildContext` only
+  when the helper calls an API that requires it, rather than passing context or
+  an entire Bloc state by default.
+- These practices keep UI code readable without turning straightforward values
+  or declarative widget configuration into unnecessary indirection.
 
 ## Architecture Boundaries
 - Follow the feature structure `data/`, `di/`, `domain/`,
@@ -74,9 +80,16 @@
   project's existing checker, state manager, and folder conventions.
 - If adopting `internet_checker_plus` is explicitly in scope, use its status
   stream and current-status check rather than adding a parallel abstraction.
-- `ConnectivityState` starts as connected (`isConnected = true`) and exposes only the current connection flag until product UI needs more state.
-- Provide `ConnectivityBloc` once at the app root above `MaterialApp.router`; do not create it inside pages.
-- Export the bloc from `core/core.dart` so app/root widgets can consume it consistently.
+- Derive the initial connectivity state from a real current-status check, or
+  represent it explicitly as unknown until that check completes; do not assume
+  the device starts connected.
+- Debounce or otherwise transform connectivity events only when product needs
+  justify it, using a duration chosen for the expected UX and event behavior.
+- Scope the provider to the lifecycle of its consumers. Provide it above
+  `MaterialApp.router` only when connectivity is genuinely app-wide; otherwise
+  use the appropriate route or subtree scope.
+- Follow existing public-export conventions. Do not add a `core/core.dart`
+  barrel export unless consumers need it and that API change is in task scope.
 
 ## Route-level BLoC Provisioning
 - BLoCs/Cubits for a page/flow should be provided at the **route level** whenever that state belongs to the route lifecycle.
@@ -128,11 +141,14 @@ BlocSelector<MyCubit, MyState, String>(
 
 ### Scaffold placement
 
-- **`Scaffold` must be the outermost widget** in every page `build()` method.
-  Never wrap it with `BlocBuilder`, `BlocConsumer`, or `BlocListener`.
-- Place reactive builders and listeners inside `Scaffold.body`, scoped to the
-  smallest subtree that actually changes. This keeps static app bars, drawers,
-  and bottom navigation bars from rebuilding.
+- Scope reactive builders to the smallest subtree that changes. When only body
+  content is reactive, keep the `Scaffold` and its static app bar, drawer, or
+  navigation outside the builder.
+- `Scaffold` does not have to be the outermost page widget. Route- or
+  lifecycle-scoped providers and listeners, plus focus, restoration, and other
+  non-reactive wrappers, may wrap it when their responsibilities require that
+  scope. A reactive builder may also include the `Scaffold` when the scaffold
+  itself genuinely depends on that state.
 
 ```dart
 return Scaffold(
@@ -158,8 +174,11 @@ return Scaffold(
   task scope.
 - Follow the project's test organization and naming style. Cover the initial
   state and relevant success, loading, and failure transitions.
-- Close every Cubit or Bloc in `tearDown` and register fallback values for
-  custom mocktail types when required.
+- The owning test must close Cubit or Bloc instances it creates manually,
+  typically in `tearDown`. `blocTest` automatically closes the instance returned
+  by its `build`; do not reuse that instance across tests or close it again.
+- Register fallback values only when required by the project's selected mocking
+  tool (for example, a custom type passed to a Mocktail argument matcher).
 - Keep tests focused on observable state transitions and side-effect decisions;
   do not test private handler implementation details.
 

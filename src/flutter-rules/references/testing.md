@@ -29,8 +29,10 @@ test('value should start at 0', () {
 ```
 
 - Use one focused test file per substantial class or feature behavior.
-- Use `setUp` for shared construction and `tearDown` for cleanup. Close
-  Cubits, Blocs, streams, and controllers created by a test.
+- Use `setUp` for shared construction and `tearDown` for cleanup. The owning
+  test must close Cubits, Blocs, streams, and controllers it creates manually.
+  A Cubit or Bloc returned by `blocTest`'s `build` is automatically closed;
+  do not reuse it across tests or close it again.
 - Follow the project's existing test organization. When none exists, mirror
   the `lib/` feature and layer structure under `test/` so production code and
   its tests are easy to locate.
@@ -57,8 +59,10 @@ test('value should start at 0', () {
   storage dependency.
 - A stubbed dependency should drive real production logic and an observable
   assertion; do not assert only that a mock returns its configured value.
-- Use `mocktail` when it is the project's chosen mocking library and register
-  custom fallback values in `setUpAll` before passing them to `any()`.
+- Use the project's selected mocking library. For Mocktail, register a custom
+  fallback value in `setUpAll` only when that type is passed to an argument
+  matcher such as `any()`; do not add fallback registration for other tools or
+  when no matcher requires it.
 
 ## Widget Test Basics
 

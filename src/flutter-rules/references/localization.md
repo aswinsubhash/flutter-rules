@@ -26,8 +26,10 @@ UI packages.
   strings in.
 - Pass a typed strings object (for example, `SettingsPageStrings`) from the
   host app instead of having the package read `context.l10n`.
-- The host app owns localization, routing, state management, dependency
-  injection, and business behavior. The package owns layout and interactions.
+- The host app owns app-specific localization, routing, dependency-injection
+  integration, services, and business behavior. A reusable package owns its
+  layout and interactions and may own portable internal state and behavior, but
+  it must not depend on host-generated localization or app-specific services.
 - A package may ship its own ARB bundle only when it is a genuinely reusable,
   published package with stable copy that should be translated independently
   of its host app.

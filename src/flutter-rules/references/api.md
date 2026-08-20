@@ -2,8 +2,8 @@
 
 ## Dio Client Baseline
 - When adding core networking, create the baseline from this repository's needs; do not copy endpoint lists, session fields, or storage behavior from another project unless the user explicitly asks for those details.
-- `lib/core/network/api_endpoints.dart` may start as an empty `abstract final class ApiEndpoints {}`. Add endpoint constants only when implementing the feature that uses them.
-- `lib/core/storage/user_session.dart` may start as an empty `class UserSession {}`. Add persistence fields/dependencies only when auth/session storage is requested.
+- Create `lib/core/network/api_endpoints.dart` only when the current task needs its first real endpoint member; do not add an empty `ApiEndpoints` placeholder.
+- Create `lib/core/storage/user_session.dart` only when the current task needs its first real session contract or member; do not add an empty `UserSession` placeholder.
 - Reuse the project's existing environment configuration. When a project needs
   an enum-based configuration, the following neutral pattern is a suitable
   baseline. Use `--dart-define` only when it matches the project's chosen
@@ -48,9 +48,11 @@ abstract final class Env {
 - Do not copy monitoring hooks (for example `AppMonitoring`) unless the project already has that module.
 - Add only required dependencies, usually `dio` for the baseline client.
 
-## Request Models (POST/PUT/PATCH Only)
-- POST/PUT/PATCH operations must use dedicated request models in `data/models/<operation>_request_model.dart`
-- Each request model must have `toJson()` method for serialization
-- If corresponding domain usecase exists (e.g. `UpdateProfileData`), request model must have `fromParams()` factory
-- GET requests do NOT use request models (no request body)
-- Datasources use `requestModel.toJson()` instead of inline data maps
+## Request Payloads (POST/PUT/PATCH Only)
+- Preserve the project's existing request-payload modeling and naming conventions.
+- Use a dedicated request model in `data/models/<operation>_request_model.dart` when a payload is reused, validated, non-trivial, or the project's established convention requires one.
+- A dedicated request model must provide `toJson()` for serialization.
+- When the project maps domain use-case parameters into request models, follow its existing mapping convention; add a `fromParams()` factory only when that contract is useful for the operation.
+- A simple one-off payload may use an inline map when the project's convention allows it.
+- GET requests do not use request models when they have no request body.
+- Datasources serialize dedicated request models with `requestModel.toJson()`; inline maps remain limited to the simple one-off case above.
