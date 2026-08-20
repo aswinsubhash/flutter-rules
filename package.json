@@ -1,6 +1,6 @@
 {
   "name": "@aswinsubhash/flutter-rules",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Universal installer for the Flutter Rules agent skill.",
   "type": "module",
   "bin": {
