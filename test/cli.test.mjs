@@ -106,7 +106,7 @@ test('command runner resolves platform shims and rejects directories', () => {
   env[windows ? 'path' : 'PATH'] = home;
   if (windows) env.pathext = '.CMD';
   try {
-    writeFileSync(executable, windows ? '@echo off\r\n<nul set /p "=%~1"\r\n' : '#!/bin/sh\nprintf \'%s\' "$1"\n');
+    writeFileSync(executable, windows ? '@echo off\r\n<nul set /p "=%~1"\r\nexit /b 0\r\n' : '#!/bin/sh\nprintf \'%s\' "$1"\n');
     if (!windows) chmodSync(executable, 0o755);
     mkdirSync(join(home, 'directory-command'));
     const runner = createCommandRunner({ env });
