@@ -24,118 +24,42 @@ explicitly, so it applies only when requested.
 - Navigation and routing
 - Testing, analysis, documentation, and code quality
 - Secure storage and SharedPreferences usage
-- Git branches, commits, and pull-request hygiene
 
-## Global installation
+## Install
 
-Install or update Flutter Rules for Codex, Claude Code, Cursor, and Devin Local with one
-command:
+Install Flutter Rules for all supported agents:
 
 ```bash
 npx @aswinsubhash/flutter-rules@latest install all
-npx @aswinsubhash/flutter-rules@latest update all
-npx @aswinsubhash/flutter-rules@latest doctor all
-npx @aswinsubhash/flutter-rules@latest uninstall all
 ```
 
-Pass `--dry-run` to any command to validate and preview it. The executable also
-supports `flutter-rules --help` and `flutter-rules --version` when installed
-globally with npm. Set `FLUTTER_RULES_MARKETPLACE_SOURCE` to a Git source or
-local marketplace path when adding the Codex and Claude Code marketplace. An
-existing marketplace must be reconfigured explicitly before changing its source.
-
-**🪄 Prompt**
-
-```text
-Install or update Flutter Rules globally for Codex, Claude Code, Cursor, and Devin Local by running `npx @aswinsubhash/flutter-rules@latest install all` or `npx @aswinsubhash/flutter-rules@latest update all`. Verify each tool, report missing CLIs without installing them automatically, and do not modify a project directory.
-```
-
-This installs the skill at user scope, making it available across projects in
-each supported local tool.
-
-## Installation
-
-Use these options when installing for only one tool.
-
-### Codex
-
-Install through the universal CLI:
+No plugin marketplace setup is required. Install for a specific agent instead:
 
 ```bash
 npx @aswinsubhash/flutter-rules@latest install codex
-npx @aswinsubhash/flutter-rules@latest update codex
-```
-
-**🪄 Prompt**
-
-```text
-Install or update Flutter Rules for Codex with `npx @aswinsubhash/flutter-rules@latest install codex` or `npx @aswinsubhash/flutter-rules@latest update codex`. Verify that the `flutter-rules@flutter-rules` plugin and `$flutter-rules` skill are available, report the result, and do not modify Claude Code, Cursor, or Devin.
-```
-
-Invoke it with `$flutter-rules`.
-
-### Claude Code
-
-Install through the universal CLI at user scope:
-
-```bash
 npx @aswinsubhash/flutter-rules@latest install claude
-npx @aswinsubhash/flutter-rules@latest update claude
-```
-
-**🪄 Prompt**
-
-```text
-Install or update Flutter Rules for Claude Code with `npx @aswinsubhash/flutter-rules@latest install claude` or `npx @aswinsubhash/flutter-rules@latest update claude`. Verify that `/flutter-rules:flutter-rules` is available, report the result, and do not modify Codex, Cursor, or Devin.
-```
-
-Invoke it with `/flutter-rules:flutter-rules`.
-
-### Cursor
-
-Install through the universal CLI at user scope:
-
-```bash
 npx @aswinsubhash/flutter-rules@latest install cursor
-npx @aswinsubhash/flutter-rules@latest update cursor
+npx @aswinsubhash/flutter-rules@latest install devin
 ```
 
-**🪄 Prompt**
-
-```text
-Install or update Flutter Rules for Cursor at user scope with `npx @aswinsubhash/flutter-rules@latest install cursor` or `npx @aswinsubhash/flutter-rules@latest update cursor`. Verify that `~/.cursor/skills/flutter-rules/SKILL.md` exists and do not modify Codex, Claude Code, or Devin.
-```
-
-Invoke it with `/flutter-rules`.
-
-When Cursor and Devin Local are installed together, Cursor may display the
-shared `~/.agents/skills/flutter-rules` path instead of the dedicated
-`~/.cursor/skills/flutter-rules` path. Cursor discovers both user-level skill
-directories. The installer renders both copies with matching explicit-only
-invocation metadata, so either discovered path behaves the same. Run
-`flutter-rules doctor all` to detect drift and `flutter-rules update all` to
-synchronize the copies.
-
-### Devin
-
-Install through the universal CLI at user scope:
+Preview an installation without changing anything:
 
 ```bash
-npx @aswinsubhash/flutter-rules@latest install devin
-npx @aswinsubhash/flutter-rules@latest update devin
+npx @aswinsubhash/flutter-rules@latest install all --dry-run
 ```
 
-**🪄 Prompt**
+## Use
 
-```text
-Install or update Flutter Rules for Devin Local at user scope with `npx @aswinsubhash/flutter-rules@latest install devin` or `npx @aswinsubhash/flutter-rules@latest update devin`. Verify that `~/.agents/skills/flutter-rules/SKILL.md` exists and do not modify Codex, Claude Code, Cursor, or any project directory.
-```
+Flutter Rules runs only when you invoke it explicitly.
 
-Invoke it with `@skills:flutter-rules`.
+| Agent | Invocation |
+| --- | --- |
+| Codex | `$flutter-rules` |
+| Claude Code | `/flutter-rules` |
+| Cursor | `/flutter-rules` |
+| Devin | `@skills:flutter-rules` |
 
-## Usage
-
-Invoke the skill before describing the Flutter task. For example:
+Examples for Codex:
 
 ```text
 $flutter-rules review this authentication feature
@@ -143,64 +67,38 @@ $flutter-rules plan a new checkout flow
 $flutter-rules check whether this session storage is secure
 ```
 
-Invocation syntax varies by host as shown above. The guidance remains the same
-across supported agents.
+Start a new agent session after installation so the skill is discovered.
 
-## Invocation policy
+## Manage
 
-Flutter Rules is configured for explicit invocation on every supported host.
-Installing it does not make the agent apply the rules automatically to every
-Flutter request.
-
-| Host | Explicit invocation |
-| --- | --- |
-| Codex | `$flutter-rules` |
-| Claude Code | `/flutter-rules:flutter-rules` |
-| Cursor | `/flutter-rules` |
-| Devin | `@skills:flutter-rules` |
-
-## Updating
-
-Use the universal CLI to update local tools:
+Update Flutter Rules:
 
 ```bash
 npx @aswinsubhash/flutter-rules@latest update all
 ```
 
-If the CLI is unavailable, use the direct marketplace commands:
+Check that it is installed correctly:
 
 ```bash
-# Initial install
-codex plugin marketplace add aswinsubhash/flutter-rules --ref main
-codex plugin add flutter-rules@flutter-rules
-claude plugin marketplace add aswinsubhash/flutter-rules
-claude plugin install flutter-rules@flutter-rules --scope user
-
-# Update
-codex plugin marketplace upgrade flutter-rules
-codex plugin add flutter-rules@flutter-rules
-claude plugin marketplace update flutter-rules
-claude plugin update flutter-rules@flutter-rules --scope user
+npx @aswinsubhash/flutter-rules@latest doctor all
 ```
 
-## Contributing
-
-The canonical skill lives in `src/flutter-rules`. Host-specific packages are
-generated from that source and should not be edited directly.
-
-After changing the canonical skill, synchronize and validate the repository:
+Uninstall it:
 
 ```bash
-./scripts/sync-plugin-skills.sh
-./scripts/validate.sh
+npx @aswinsubhash/flutter-rules@latest uninstall all
 ```
 
-Open a pull request with the canonical and generated changes together.
+Use `--help` to see all commands and targets:
+
+```bash
+npx @aswinsubhash/flutter-rules@latest --help
+```
 
 ## Community
 
-- Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a rule or opening a
-  pull request.
+- Read [CONTRIBUTING.md](CONTRIBUTING.md) to propose a rule or contribute a
+  change.
 - Use the issue forms to report a bug or propose a rule.
 - Report vulnerabilities privately by following [SECURITY.md](SECURITY.md).
 - Distributed under the [MIT License](LICENSE).
@@ -210,6 +108,5 @@ Open a pull request with the canonical and generated changes together.
 - [Agent Skills specification](https://agentskills.io/specification)
 - [Codex skills](https://developers.openai.com/codex/skills/)
 - [Claude Code skills](https://code.claude.com/docs/en/slash-commands)
-- [Claude Code plugin marketplaces](https://code.claude.com/docs/en/plugin-marketplaces)
 - [Cursor skills](https://cursor.com/docs/skills)
 - [Devin skills](https://docs.devin.ai/product-guides/skills)

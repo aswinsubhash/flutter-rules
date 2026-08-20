@@ -1,0 +1,7 @@
+interface:
+  display_name: "Flutter Rules"
+  short_description: "Apply reusable Flutter engineering rules"
+  default_prompt: "Use $flutter-rules to apply the Flutter engineering rules to this task."
+
+policy:
+  allow_implicit_invocation: false

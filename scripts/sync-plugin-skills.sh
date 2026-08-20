@@ -13,6 +13,7 @@ fi
 temporary_root="$(mktemp -d)"
 trap 'rm -rf -- "$temporary_root"' EXIT
 
+"$script_dir/render-skill.sh" agents "$temporary_root/agents"
 "$script_dir/render-skill.sh" codex "$temporary_root/codex"
 "$script_dir/render-skill.sh" claude "$temporary_root/claude"
 "$script_dir/render-skill.sh" devin "$temporary_root/devin"
@@ -26,7 +27,7 @@ if [[ "$mode" == "--check" ]]; then
   diff -ru "$temporary_root/codex" "$codex_destination"
   diff -ru "$temporary_root/claude" "$claude_destination"
   diff -ru "$temporary_root/devin" "$devin_destination"
-  diff -ru "$temporary_root/devin" "$agents_destination"
+  diff -ru "$temporary_root/agents" "$agents_destination"
   exit 0
 fi
 
@@ -48,4 +49,4 @@ done
 cp -R "$temporary_root/codex" "$codex_destination"
 cp -R "$temporary_root/claude" "$claude_destination"
 cp -R "$temporary_root/devin" "$devin_destination"
-cp -R "$temporary_root/devin" "$agents_destination"
+cp -R "$temporary_root/agents" "$agents_destination"

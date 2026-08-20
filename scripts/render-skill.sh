@@ -2,7 +2,7 @@
 set -euo pipefail
 
 usage() {
-  echo "Usage: $0 <codex|claude|cursor|devin> <destination>" >&2
+  echo "Usage: $0 <agents|codex|claude|cursor|devin> <destination>" >&2
 }
 
 if [[ $# -ne 2 ]]; then
@@ -18,7 +18,7 @@ repo_root="$(cd -- "$script_dir/.." && pwd)"
 source_dir="$repo_root/src/flutter-rules"
 
 case "$platform" in
-  codex|claude|cursor|devin) ;;
+  agents|codex|claude|cursor|devin) ;;
   *)
     usage
     exit 2

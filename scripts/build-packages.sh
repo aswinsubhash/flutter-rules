@@ -15,7 +15,7 @@ fi
 
 mkdir -p "$output_root"
 
-for platform in codex claude cursor devin; do
+for platform in agents claude; do
   platform_root="$output_root/$platform"
   "$script_dir/render-skill.sh" "$platform" "$platform_root/flutter-rules"
   node --input-type=module - "$platform_root" "$output_root/flutter-rules-$platform.tar.gz" <<'NODE'

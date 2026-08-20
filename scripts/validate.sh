@@ -14,12 +14,10 @@ python3 -m json.tool "$repo_root/claude-plugins/flutter-rules/.claude-plugin/plu
 "$script_dir/sync-plugin-skills.sh" --check
 "$script_dir/build-packages.sh" "$temporary_root/dist"
 
+grep -q '^disable-model-invocation: true$' "$temporary_root/dist/agents/flutter-rules/SKILL.md"
+grep -q '^triggers: \["user"\]$' "$temporary_root/dist/agents/flutter-rules/SKILL.md"
+grep -q '^  allow_implicit_invocation: false$' "$temporary_root/dist/agents/flutter-rules/agents/openai.yaml"
 grep -q '^disable-model-invocation: true$' "$temporary_root/dist/claude/flutter-rules/SKILL.md"
-grep -q '^disable-model-invocation: true$' "$temporary_root/dist/cursor/flutter-rules/SKILL.md"
-grep -q '^triggers: \["user"\]$' "$temporary_root/dist/cursor/flutter-rules/SKILL.md"
-grep -q '^disable-model-invocation: true$' "$temporary_root/dist/devin/flutter-rules/SKILL.md"
-grep -q '^triggers: \["user"\]$' "$temporary_root/dist/devin/flutter-rules/SKILL.md"
-grep -q '^  allow_implicit_invocation: false$' "$temporary_root/dist/codex/flutter-rules/agents/openai.yaml"
 
 if command -v skills-ref >/dev/null 2>&1; then
   skills-ref validate "$repo_root/src/flutter-rules"

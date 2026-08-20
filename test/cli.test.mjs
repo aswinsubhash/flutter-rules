@@ -29,23 +29,30 @@ function tempHome() {
   return mkdtempSync(join(tmpdir(), 'flutter-rules-test-'));
 }
 
-function readExplicitSkill(path) {
+function readSharedSkill(path) {
   const content = readFileSync(path, 'utf8');
   assert.match(content, /^disable-model-invocation: true$/m);
   assert.match(content, /^triggers: \["user"\]$/m);
   return content;
 }
 
+function readClaudeSkill(path) {
+  const content = readFileSync(path, 'utf8');
+  assert.match(content, /^disable-model-invocation: true$/m);
+  assert.doesNotMatch(content, /^triggers:/m);
+  return content;
+}
+
 test('argument parser removes dry-run flags without changing command values', () => {
-  assert.deepEqual(parseArgs(['install', 'cursor', '--dry-run']), {
-    values: ['install', 'cursor'],
+  assert.deepEqual(parseArgs(['install', 'agents', '--dry-run']), {
+    values: ['install', 'agents'],
     dryRun: true,
   });
 });
 
 test('CLI rejects unknown options and surplus arguments explicitly', async () => {
-  await assert.rejects(runCli(['install', 'cursor', '--dryrun']), /Unknown option: --dryrun/);
-  await assert.rejects(runCli(['install', 'cursor', 'oops']), /Unexpected argument: oops/);
+  await assert.rejects(runCli(['install', 'agents', '--dryrun']), /Unknown option: --dryrun/);
+  await assert.rejects(runCli(['install', 'agents', 'oops']), /Unexpected argument: oops/);
 });
 
 test('frontmatter fields are bounded, replaced, and preserve BOM and CRLF', () => {
@@ -98,7 +105,6 @@ test('failed replacement restores the existing directory and removes the tempora
   try {
     mkdirSync(destination, { recursive: true });
     writeFileSync(join(destination, 'SKILL.md'), 'old');
-
     assert.throws(
       () => installDirectory({
         source: join(home, 'missing-source'),
@@ -107,7 +113,6 @@ test('failed replacement restores the existing directory and removes the tempora
       }),
       /ENOENT/,
     );
-
     assert.equal(readFileSync(join(destination, 'SKILL.md'), 'utf8'), 'old');
     assert.deepEqual(readdirSync(home).filter((name) => name.startsWith('skill.backup.')), []);
   } finally {
@@ -115,7 +120,7 @@ test('failed replacement restores the existing directory and removes the tempora
   }
 });
 
-test('setup devin redirects to user-level installation without touching the filesystem', async () => {
+test('setup devin redirects to the shared agents installation without touching the filesystem', async () => {
   const home = tempHome();
   const output = [];
   const before = readdirSync(home);
@@ -126,308 +131,168 @@ test('setup devin redirects to user-level installation without touching the file
     });
     assert.equal(code, 0);
     assert.match(output.join('\n'), /setup devin.*deprecated/i);
-    assert.match(output.join('\n'), /flutter-rules install devin/);
-    assert.doesNotMatch(output.join('\n'), /organization|cloud|index/i);
+    assert.match(output.join('\n'), /flutter-rules install agents/);
     assert.deepEqual(readdirSync(home), before);
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
 });
 
-test('devin install and update replace the skill without leaving backups', async () => {
+test('agents install and update maintain one shared manual-only skill', async () => {
   const home = tempHome();
   const runner = fakeRunner();
-  const output = [];
   const destination = join(home, '.agents', 'skills', 'flutter-rules');
-  const cursorMarker = join(home, '.cursor', 'skills', 'flutter-rules', 'cursor-marker.txt');
   try {
-    await runCli(['install', 'devin'], {
-      home,
-      runner,
-      packageRoot: repoRoot,
-      log: (message) => output.push(message),
-    });
-    assert.ok(existsSync(join(destination, 'SKILL.md')));
-    readExplicitSkill(join(destination, 'SKILL.md'));
-    assert.equal(existsSync(join(destination, 'agents')), false);
-
-    await runCli(['doctor', 'devin'], { home, runner, log: (message) => output.push(message) });
-    assert.match(output.join('\n'), /Devin Local skill is installed/);
+    await runCli(['install', 'agents'], { home, runner, packageRoot: repoRoot });
+    readSharedSkill(join(destination, 'SKILL.md'));
+    assert.match(readFileSync(join(destination, 'agents', 'openai.yaml'), 'utf8'), /allow_implicit_invocation: false/);
+    assert.equal(existsSync(join(home, '.cursor')), false);
 
     writeFileSync(join(destination, 'old-marker.txt'), 'old');
-    mkdirSync(join(home, '.cursor', 'skills', 'flutter-rules'), { recursive: true });
-    writeFileSync(cursorMarker, 'cursor');
-    await runCli(['update', 'devin'], { home, runner, packageRoot: repoRoot });
-    const backups = readdirSync(join(home, '.agents', 'skills')).filter((name) => name.startsWith('flutter-rules.backup.'));
-    assert.equal(backups.length, 0);
+    await runCli(['update', 'agents'], { home, runner, packageRoot: repoRoot });
     assert.equal(existsSync(join(destination, 'old-marker.txt')), false);
-    assert.equal(readFileSync(cursorMarker, 'utf8'), 'cursor');
-
-    await runCli(['uninstall', 'devin'], { home, runner, packageRoot: repoRoot });
-    assert.equal(existsSync(destination), false);
-  } finally {
-    rmSync(home, { recursive: true, force: true });
-  }
-});
-
-test('devin dry-run does not create a user skill', async () => {
-  const home = tempHome();
-  try {
-    await runCli(['install', 'devin', '--dry-run'], { home, packageRoot: repoRoot });
-    assert.equal(existsSync(join(home, '.agents')), false);
-  } finally {
-    rmSync(home, { recursive: true, force: true });
-  }
-});
-
-test('cursor install and update replace the skill without leaving backups', async () => {
-  const home = tempHome();
-  const runner = fakeRunner();
-  const destination = join(home, '.cursor', 'skills', 'flutter-rules');
-  const devinMarker = join(home, '.agents', 'skills', 'flutter-rules', 'devin-marker.txt');
-  try {
-    await runCli(['install', 'cursor'], { home, runner, packageRoot: repoRoot });
-    assert.ok(existsSync(join(destination, 'SKILL.md')));
-    readExplicitSkill(join(destination, 'SKILL.md'));
-    assert.equal(existsSync(join(destination, 'agents')), false);
-
-    writeFileSync(join(destination, 'old-marker.txt'), 'old');
-    mkdirSync(join(home, '.agents', 'skills', 'flutter-rules'), { recursive: true });
-    writeFileSync(devinMarker, 'devin');
-    await runCli(['update', 'cursor'], { home, runner, packageRoot: repoRoot });
-    const backups = readdirSync(join(home, '.cursor', 'skills')).filter((name) => name.startsWith('flutter-rules.backup.'));
-    assert.equal(backups.length, 0);
-    assert.equal(existsSync(join(destination, 'old-marker.txt')), false);
-    assert.equal(readFileSync(devinMarker, 'utf8'), 'devin');
-
-    await runCli(['uninstall', 'cursor'], { home, runner, packageRoot: repoRoot });
-    assert.equal(existsSync(destination), false);
-  } finally {
-    rmSync(home, { recursive: true, force: true });
-  }
-});
-
-test('filesystem rendering filters unsupported and metadata files', async () => {
-  const home = tempHome();
-  const packageRoot = join(home, 'package');
-  const source = join(packageRoot, 'src', 'flutter-rules');
-  const destination = join(home, '.cursor', 'skills', 'flutter-rules');
-  try {
-    mkdirSync(join(source, 'references'), { recursive: true });
-    mkdirSync(join(source, 'agents'));
-    writeFileSync(join(source, 'SKILL.md'), '---\nname: flutter-rules\nmetadata:\n  version: 1.2.3\n---\n');
-    writeFileSync(join(source, '.DS_Store'), 'metadata');
-    writeFileSync(join(source, 'extra.txt'), 'extra');
-    writeFileSync(join(source, 'references', '.DS_Store'), 'metadata');
-    writeFileSync(join(source, 'references', 'guide.md'), 'guide');
-    writeFileSync(join(source, 'agents', 'openai.yaml'), 'agent');
-    await runCli(['install', 'cursor'], { home, packageRoot });
-    assert.deepEqual(readdirSync(destination).sort(), ['SKILL.md', 'references']);
-    assert.deepEqual(readdirSync(join(destination, 'references')), ['guide.md']);
-  } finally {
-    rmSync(home, { recursive: true, force: true });
-  }
-});
-
-test('failed frontmatter rendering leaves no destination or rendered directory', async () => {
-  const home = tempHome();
-  const packageRoot = join(home, 'package');
-  const source = join(packageRoot, 'src', 'flutter-rules');
-  try {
-    mkdirSync(source, { recursive: true });
-    writeFileSync(join(source, 'SKILL.md'), '---\nname: flutter-rules\nmetadata:\n  version: 1.2.3\n');
-    await assert.rejects(runCli(['install', 'cursor'], { home, packageRoot }), /missing its closing delimiter/);
-    assert.equal(existsSync(join(home, '.cursor')), false);
-  } finally {
-    rmSync(home, { recursive: true, force: true });
-  }
-});
-
-test('cursor dry-run validates and previews rendering without creating a user skill', async () => {
-  const home = tempHome();
-  const output = [];
-  try {
-    await runCli(['install', 'cursor'], {
-      home,
-      packageRoot: repoRoot,
-      env: { FLUTTER_RULES_DRY_RUN: '1' },
-      log: (message) => output.push(message),
-    });
-    assert.equal(existsSync(join(home, '.cursor')), false);
-    assert.match(output.join('\n'), /DRY RUN: render .*src.*flutter-rules.*\.cursor.*flutter-rules/);
-  } finally {
-    rmSync(home, { recursive: true, force: true });
-  }
-});
-
-test('filesystem dry-run rejects a missing skill source', async () => {
-  const home = tempHome();
-  try {
-    await assert.rejects(
-      runCli(['install', 'cursor', '--dry-run'], { home, packageRoot: join(home, 'missing-package') }),
-      /ENOENT/,
+    assert.deepEqual(
+      readdirSync(join(home, '.agents', 'skills')).filter((name) => name.startsWith('flutter-rules.backup.')),
+      [],
     );
-    assert.equal(existsSync(join(home, '.cursor')), false);
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
 });
 
-test('dry-run previews Codex commands without invoking an injected runner', async () => {
-  const calls = [];
-  const output = [];
-  const runner = {
-    has() {
-      calls.push('has');
-      return true;
-    },
-    run() {
-      calls.push('run');
-      return { code: 0, stdout: '', stderr: '' };
-    },
-  };
-  const code = await runCli(['install', 'codex', '--dry-run'], {
-    runner,
-    log: (message) => output.push(message),
-  });
-  assert.equal(code, 0);
-  assert.deepEqual(calls, []);
-  assert.match(output.join('\n'), /DRY RUN: codex plugin marketplace list --json/);
+test('codex, cursor, and devin aliases use the shared agents destination', async () => {
+  for (const target of ['codex', 'cursor', 'devin']) {
+    const home = tempHome();
+    try {
+      await runCli(['install', target], { home, runner: fakeRunner(), packageRoot: repoRoot });
+      assert.ok(existsSync(join(home, '.agents', 'skills', 'flutter-rules', 'SKILL.md')));
+      assert.equal(existsSync(join(home, '.cursor')), false);
+    } finally {
+      rmSync(home, { recursive: true, force: true });
+    }
+  }
 });
 
-test('codex install adds a missing marketplace before installing the plugin', async () => {
+test('agents migration removes legacy Codex plugin, marketplace, and Cursor copy', async () => {
+  const home = tempHome();
+  const legacyCursor = join(home, '.cursor', 'skills', 'flutter-rules');
   const runner = fakeRunner({
     available: ['codex'],
     responses: [
-      { code: 0, stdout: JSON.stringify({ marketplaces: [] }), stderr: '' },
+      { code: 0, stdout: JSON.stringify({ installed: [{ pluginId: 'flutter-rules@flutter-rules' }] }), stderr: '' },
       { code: 0, stdout: '', stderr: '' },
-      { code: 0, stdout: '', stderr: '' },
-    ],
-  });
-  await runCli(['install', 'codex'], { runner });
-  assert.deepEqual(runner.calls, [
-    ['codex', 'plugin', 'marketplace', 'list', '--json'],
-    ['codex', 'plugin', 'marketplace', 'add', 'aswinsubhash/flutter-rules', '--ref', 'main'],
-    ['codex', 'plugin', 'add', 'flutter-rules@flutter-rules'],
-  ]);
-});
-
-test('codex update upgrades an existing marketplace before reinstalling the plugin', async () => {
-  const runner = fakeRunner({
-    available: ['codex'],
-    responses: [
       { code: 0, stdout: JSON.stringify({ marketplaces: [{ name: 'flutter-rules' }] }), stderr: '' },
       { code: 0, stdout: '', stderr: '' },
-      { code: 0, stdout: '', stderr: '' },
     ],
   });
-  await runCli(['update', 'codex'], { runner });
-  assert.deepEqual(runner.calls, [
-    ['codex', 'plugin', 'marketplace', 'list', '--json'],
-    ['codex', 'plugin', 'marketplace', 'upgrade', 'flutter-rules'],
-    ['codex', 'plugin', 'add', 'flutter-rules@flutter-rules'],
-  ]);
+  try {
+    mkdirSync(legacyCursor, { recursive: true });
+    writeFileSync(join(legacyCursor, 'SKILL.md'), 'legacy');
+    await runCli(['install', 'agents'], { home, runner, packageRoot: repoRoot });
+    assert.equal(existsSync(legacyCursor), false);
+    assert.deepEqual(runner.calls, [
+      ['codex', 'plugin', 'list', '--json'],
+      ['codex', 'plugin', 'remove', 'flutter-rules@flutter-rules'],
+      ['codex', 'plugin', 'marketplace', 'list', '--json'],
+      ['codex', 'plugin', 'marketplace', 'remove', 'flutter-rules'],
+    ]);
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
 });
 
-test('codex refuses to replace an existing marketplace source implicitly', async () => {
-  const runner = fakeRunner({
-    available: ['codex'],
-    responses: [
-      { code: 0, stdout: JSON.stringify({ marketplaces: [{ name: 'flutter-rules' }] }), stderr: '' },
-    ],
-  });
-  await assert.rejects(
-    runCli(['update', 'codex'], {
-      runner,
-      env: { FLUTTER_RULES_MARKETPLACE_SOURCE: repoRoot },
-    }),
-    /refusing to replace its source automatically/,
-  );
-  assert.deepEqual(runner.calls, [['codex', 'plugin', 'marketplace', 'list', '--json']]);
-});
-
-test('codex preserves an explicit marketplace source ref', async () => {
-  const runner = fakeRunner({
-    available: ['codex'],
-    responses: [
-      { code: 0, stdout: JSON.stringify({ marketplaces: [] }), stderr: '' },
-      { code: 0, stdout: '', stderr: '' },
-      { code: 0, stdout: '', stderr: '' },
-    ],
-  });
-  await runCli(['install', 'codex'], {
-    runner,
-    env: { FLUTTER_RULES_MARKETPLACE_SOURCE: 'owner/repository@release' },
-  });
-  assert.deepEqual(runner.calls[1], [
-    'codex',
-    'plugin',
-    'marketplace',
-    'add',
-    'owner/repository@release',
-  ]);
-});
-
-test('explicit Codex install reports actionable guidance when the CLI is missing', async () => {
-  await assert.rejects(
-    runCli(['install', 'codex'], { runner: fakeRunner() }),
-    /Codex CLI was not found.*Install Codex/i,
-  );
-});
-
-test('Codex doctor reports the installed plugin from JSON output', async () => {
-  const output = [];
-  const runner = fakeRunner({
-    available: ['codex'],
-    responses: [{ code: 0, stdout: JSON.stringify({ plugins: [{ pluginId: 'flutter-rules@flutter-rules' }] }), stderr: '' }],
-  });
-  const code = await runCli(['doctor', 'codex'], { runner, log: (message) => output.push(message) });
-  assert.equal(code, 0);
-  assert.match(output.join('\n'), /Codex plugin is installed/);
-  assert.deepEqual(runner.calls, [['codex', 'plugin', 'list', '--json']]);
-});
-
-test('Codex doctor ignores available, unrelated, and descriptive plugin entries', async () => {
+test('Codex migration preserves plugins outside user scope', async () => {
+  const home = tempHome();
   const output = [];
   const runner = fakeRunner({
     available: ['codex'],
     responses: [{
       code: 0,
-      stdout: JSON.stringify({
-        installed: [],
-        available: [{ pluginId: 'flutter-rules@flutter-rules' }],
-        plugins: [
-          { pluginId: 'flutter-rules@another-marketplace' },
-          { description: 'flutter-rules' },
-        ],
-      }),
+      stdout: JSON.stringify({ installed: [{ pluginId: 'flutter-rules@flutter-rules', scope: 'project' }] }),
       stderr: '',
     }],
   });
-  await runCli(['doctor', 'codex'], { runner, log: (message) => output.push(message) });
-  assert.match(output.join('\n'), /Codex plugin is not installed/);
+  try {
+    await runCli(['install', 'agents'], {
+      home,
+      runner,
+      packageRoot: repoRoot,
+      log: (message) => output.push(message),
+    });
+    assert.ok(existsSync(join(home, '.agents', 'skills', 'flutter-rules', 'SKILL.md')));
+    assert.match(output.join('\n'), /legacy Codex plugin remains outside user scope/);
+    assert.deepEqual(runner.calls, [['codex', 'plugin', 'list', '--json']]);
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
 });
 
-test('Claude uninstall removes the plugin before its marketplace when both are present', async () => {
+test('standalone installation survives a legacy CLI cleanup failure', async () => {
+  const home = tempHome();
+  const output = [];
+  const runner = fakeRunner({
+    available: ['codex'],
+    responses: [{ code: 1, stdout: '', stderr: 'unsupported command' }],
+  });
+  try {
+    await runCli(['install', 'agents'], {
+      home,
+      runner,
+      packageRoot: repoRoot,
+      log: (message) => output.push(message),
+    });
+    assert.ok(existsSync(join(home, '.agents', 'skills', 'flutter-rules', 'SKILL.md')));
+    assert.match(output.join('\n'), /Could not clean up the legacy Codex plugin/);
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test('Claude install and update maintain one standalone user-only skill', async () => {
+  const home = tempHome();
+  const runner = fakeRunner();
+  const destination = join(home, '.claude', 'skills', 'flutter-rules');
+  try {
+    await runCli(['install', 'claude'], { home, runner, packageRoot: repoRoot });
+    readClaudeSkill(join(destination, 'SKILL.md'));
+    assert.equal(existsSync(join(destination, 'agents')), false);
+
+    writeFileSync(join(destination, 'old-marker.txt'), 'old');
+    await runCli(['update', 'claude'], { home, runner, packageRoot: repoRoot });
+    assert.equal(existsSync(join(destination, 'old-marker.txt')), false);
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test('Claude migration removes a legacy user plugin and marketplace', async () => {
+  const home = tempHome();
   const runner = fakeRunner({
     available: ['claude'],
     responses: [
-      { code: 0, stdout: JSON.stringify({ plugins: [{ pluginId: 'flutter-rules@flutter-rules' }] }), stderr: '' },
+      { code: 0, stdout: JSON.stringify([{ id: 'flutter-rules@flutter-rules', scope: 'user' }]), stderr: '' },
       { code: 0, stdout: '', stderr: '' },
-      { code: 0, stdout: JSON.stringify({ marketplaces: [{ name: 'flutter-rules' }] }), stderr: '' },
+      { code: 0, stdout: JSON.stringify([{ name: 'flutter-rules' }]), stderr: '' },
       { code: 0, stdout: '', stderr: '' },
     ],
   });
-  await runCli(['uninstall', 'claude'], { runner });
-  assert.deepEqual(runner.calls, [
-    ['claude', 'plugin', 'list', '--json'],
-    ['claude', 'plugin', 'uninstall', 'flutter-rules@flutter-rules', '--scope', 'user'],
-    ['claude', 'plugin', 'marketplace', 'list', '--json'],
-    ['claude', 'plugin', 'marketplace', 'remove', 'flutter-rules'],
-  ]);
+  try {
+    await runCli(['install', 'claude'], { home, runner, packageRoot: repoRoot });
+    assert.deepEqual(runner.calls, [
+      ['claude', 'plugin', 'list', '--json'],
+      ['claude', 'plugin', 'uninstall', 'flutter-rules@flutter-rules', '--scope', 'user'],
+      ['claude', 'plugin', 'marketplace', 'list', '--json'],
+      ['claude', 'plugin', 'marketplace', 'remove', 'flutter-rules'],
+    ]);
+    assert.ok(existsSync(join(home, '.claude', 'skills', 'flutter-rules', 'SKILL.md')));
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
 });
 
-test('Claude uninstall preserves project-scoped plugins and their marketplace', async () => {
+test('Claude migration preserves project-scoped plugins and installs the standalone skill', async () => {
+  const home = tempHome();
+  const output = [];
   const runner = fakeRunner({
     available: ['claude'],
     responses: [{
@@ -436,164 +301,148 @@ test('Claude uninstall preserves project-scoped plugins and their marketplace', 
       stderr: '',
     }],
   });
-  await runCli(['uninstall', 'claude'], { runner });
-  assert.deepEqual(runner.calls, [['claude', 'plugin', 'list', '--json']]);
-});
-
-test('claude update refreshes the marketplace and installed user plugin', async () => {
-  const runner = fakeRunner({
-    available: ['claude'],
-    responses: [
-      { code: 0, stdout: JSON.stringify({ marketplaces: [{ name: 'flutter-rules' }] }), stderr: '' },
-      { code: 0, stdout: '', stderr: '' },
-      { code: 0, stdout: JSON.stringify([{ id: 'flutter-rules@flutter-rules', scope: 'user' }]), stderr: '' },
-      { code: 0, stdout: '', stderr: '' },
-    ],
-  });
-  await runCli(['update', 'claude'], { runner });
-  assert.deepEqual(runner.calls, [
-    ['claude', 'plugin', 'marketplace', 'list', '--json'],
-    ['claude', 'plugin', 'marketplace', 'update', 'flutter-rules'],
-    ['claude', 'plugin', 'list', '--json'],
-    ['claude', 'plugin', 'update', 'flutter-rules@flutter-rules', '--scope', 'user'],
-  ]);
-});
-
-test('claude update installs user scope when the plugin exists only at project scope', async () => {
-  const runner = fakeRunner({
-    available: ['claude'],
-    responses: [
-      { code: 0, stdout: JSON.stringify({ marketplaces: [{ name: 'flutter-rules' }] }), stderr: '' },
-      { code: 0, stdout: '', stderr: '' },
-      { code: 0, stdout: JSON.stringify([{ id: 'flutter-rules@flutter-rules', scope: 'project' }]), stderr: '' },
-      { code: 0, stdout: '', stderr: '' },
-    ],
-  });
-  await runCli(['update', 'claude'], { runner });
-  assert.deepEqual(runner.calls.at(-1), [
-    'claude',
-    'plugin',
-    'install',
-    'flutter-rules@flutter-rules',
-    '--scope',
-    'user',
-  ]);
-});
-
-test('claude update installs a missing plugin from the configured source override', async () => {
-  const runner = fakeRunner({
-    available: ['claude'],
-    responses: [
-      { code: 0, stdout: JSON.stringify({ marketplaces: [] }), stderr: '' },
-      { code: 0, stdout: '', stderr: '' },
-      { code: 0, stdout: JSON.stringify([]), stderr: '' },
-      { code: 0, stdout: '', stderr: '' },
-    ],
-  });
-  await runCli(['update', 'claude'], {
-    runner,
-    env: { FLUTTER_RULES_CODEX_MARKETPLACE_SOURCE: repoRoot },
-  });
-  assert.deepEqual(runner.calls, [
-    ['claude', 'plugin', 'marketplace', 'list', '--json'],
-    ['claude', 'plugin', 'marketplace', 'add', repoRoot],
-    ['claude', 'plugin', 'list', '--json'],
-    ['claude', 'plugin', 'install', 'flutter-rules@flutter-rules', '--scope', 'user'],
-  ]);
-});
-
-test('claude refuses to replace an existing marketplace source implicitly', async () => {
-  const runner = fakeRunner({
-    available: ['claude'],
-    responses: [{
-      code: 0,
-      stdout: JSON.stringify({ marketplaces: [{ name: 'flutter-rules' }] }),
-      stderr: '',
-    }],
-  });
-  await assert.rejects(
-    runCli(['update', 'claude'], {
-      runner,
-      env: { FLUTTER_RULES_MARKETPLACE_SOURCE: repoRoot },
-    }),
-    /refusing to replace its source automatically/,
-  );
-  assert.deepEqual(runner.calls, [['claude', 'plugin', 'marketplace', 'list', '--json']]);
-});
-
-test('all continues after missing CLIs and reports a failed aggregate result', async () => {
-  const home = tempHome();
-  const errors = [];
-  const runner = fakeRunner();
   try {
-    const code = await runCli(['install', 'all'], {
+    await runCli(['install', 'claude'], {
       home,
       runner,
       packageRoot: repoRoot,
-      error: (message) => errors.push(message),
+      log: (message) => output.push(message),
     });
-    assert.equal(code, 1);
-    assert.equal(errors.length, 2);
-    const cursorSkill = join(home, '.cursor', 'skills', 'flutter-rules', 'SKILL.md');
-    const devinSkill = join(home, '.agents', 'skills', 'flutter-rules', 'SKILL.md');
-    assert.equal(readExplicitSkill(cursorSkill), readExplicitSkill(devinSkill));
+    assert.ok(existsSync(join(home, '.claude', 'skills', 'flutter-rules', 'SKILL.md')));
+    assert.match(output.join('\n'), /legacy Claude plugin remains outside user scope/);
+    assert.deepEqual(runner.calls, [['claude', 'plugin', 'list', '--json']]);
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
 });
 
-test('filesystem doctors report synchronized copies and actionable drift', async () => {
+test('standalone dry-run validates and previews both physical destinations', async () => {
+  const home = tempHome();
+  const output = [];
+  try {
+    const code = await runCli(['install', 'all', '--dry-run'], {
+      home,
+      packageRoot: repoRoot,
+      log: (message) => output.push(message),
+    });
+    assert.equal(code, 0);
+    assert.match(output.join('\n'), /DRY RUN: render .*\.agents.*flutter-rules/);
+    assert.match(output.join('\n'), /DRY RUN: render .*\.claude.*flutter-rules/);
+    assert.equal(existsSync(join(home, '.agents')), false);
+    assert.equal(existsSync(join(home, '.claude')), false);
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test('standalone dry-run rejects a missing skill source', async () => {
+  const home = tempHome();
+  try {
+    await assert.rejects(
+      runCli(['install', 'agents', '--dry-run'], { home, packageRoot: join(home, 'missing-package') }),
+      /ENOENT/,
+    );
+    assert.equal(existsSync(join(home, '.agents')), false);
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test('failed frontmatter rendering leaves no standalone destination', async () => {
+  const home = tempHome();
+  const packageRoot = join(home, 'package');
+  const source = join(packageRoot, 'src', 'flutter-rules');
+  try {
+    mkdirSync(source, { recursive: true });
+    writeFileSync(join(source, 'SKILL.md'), '---\nname: flutter-rules\nmetadata:\n  version: 1.2.3\n');
+    await assert.rejects(
+      runCli(['install', 'agents'], { home, runner: fakeRunner(), packageRoot }),
+      /missing its closing delimiter/,
+    );
+    assert.equal(existsSync(join(home, '.agents')), false);
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test('shared rendering filters unsupported files while retaining Codex policy', async () => {
+  const home = tempHome();
+  const packageRoot = join(home, 'package');
+  const source = join(packageRoot, 'src', 'flutter-rules');
+  const destination = join(home, '.agents', 'skills', 'flutter-rules');
+  try {
+    mkdirSync(join(source, 'references'), { recursive: true });
+    mkdirSync(join(source, 'agents'));
+    writeFileSync(join(source, 'SKILL.md'), '---\nname: flutter-rules\nmetadata:\n  version: 1.2.3\n---\n');
+    writeFileSync(join(source, '.DS_Store'), 'metadata');
+    writeFileSync(join(source, 'extra.txt'), 'extra');
+    writeFileSync(join(source, 'references', '.DS_Store'), 'metadata');
+    writeFileSync(join(source, 'references', 'guide.md'), 'guide');
+    writeFileSync(join(source, 'agents', 'openai.yaml'), 'policy:\n  allow_implicit_invocation: false\n');
+    await runCli(['install', 'agents'], { home, runner: fakeRunner(), packageRoot });
+    assert.deepEqual(readdirSync(destination).sort(), ['SKILL.md', 'agents', 'references']);
+    assert.deepEqual(readdirSync(join(destination, 'references')), ['guide.md']);
+    assert.deepEqual(readdirSync(join(destination, 'agents')), ['openai.yaml']);
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test('all installs and uninstalls exactly two standalone destinations without host CLIs', async () => {
   const home = tempHome();
   const runner = fakeRunner();
-  const cursorSkill = join(home, '.cursor', 'skills', 'flutter-rules', 'SKILL.md');
-  const devinSkill = join(home, '.agents', 'skills', 'flutter-rules', 'SKILL.md');
   try {
-    await runCli(['install', 'cursor'], { home, runner, packageRoot: repoRoot });
-    await runCli(['install', 'devin'], { home, runner, packageRoot: repoRoot });
+    assert.equal(await runCli(['install', 'all'], { home, runner, packageRoot: repoRoot }), 0);
+    assert.ok(existsSync(join(home, '.agents', 'skills', 'flutter-rules', 'SKILL.md')));
+    assert.ok(existsSync(join(home, '.claude', 'skills', 'flutter-rules', 'SKILL.md')));
+    assert.equal(existsSync(join(home, '.cursor')), false);
+    assert.deepEqual(runner.calls, []);
 
-    const synchronized = [];
-    await runCli(['doctor', 'cursor'], { home, runner, log: (message) => synchronized.push(message) });
-    await runCli(['doctor', 'devin'], { home, runner, log: (message) => synchronized.push(message) });
-    assert.match(synchronized.join('\n'), /copies are synchronized/);
-    assert.match(synchronized.join('\n'), /shared \.agents path/);
+    assert.equal(await runCli(['uninstall', 'all'], { home, runner, packageRoot: repoRoot }), 0);
+    assert.equal(existsSync(join(home, '.agents', 'skills', 'flutter-rules')), false);
+    assert.equal(existsSync(join(home, '.claude', 'skills', 'flutter-rules')), false);
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
 
-    const original = readFileSync(devinSkill, 'utf8');
-    const unquotedVersion = original.replace(/version: "([^"]+)"/, 'version: $1');
-    writeFileSync(cursorSkill, unquotedVersion);
-    writeFileSync(devinSkill, unquotedVersion);
-    const unquoted = [];
-    await runCli(['doctor', 'cursor'], { home, runner, log: (message) => unquoted.push(message) });
-    assert.match(unquoted.join('\n'), /copies are synchronized/);
+test('doctors validate standalone metadata, Codex policy, and legacy duplicates', async () => {
+  const home = tempHome();
+  const runner = fakeRunner();
+  const agentsSkill = join(home, '.agents', 'skills', 'flutter-rules', 'SKILL.md');
+  const policy = join(home, '.agents', 'skills', 'flutter-rules', 'agents', 'openai.yaml');
+  const version = JSON.parse(readFileSync(join(repoRoot, 'package.json'), 'utf8')).version;
+  try {
+    await runCli(['install', 'all'], { home, runner, packageRoot: repoRoot });
+    const output = [];
+    await runCli(['doctor', 'agents'], { home, runner, log: (message) => output.push(message) });
+    await runCli(['doctor', 'claude'], { home, runner, log: (message) => output.push(message) });
+    assert.match(output.join('\n'), new RegExp(`Shared Codex, Cursor, and Devin skill is installed at version ${version.replaceAll('.', '\\.')}`));
+    assert.match(output.join('\n'), new RegExp(`Claude Code standalone skill is installed at version ${version.replaceAll('.', '\\.')}`));
 
-    const missingVersion = original.replace(/^\s+version:.*\n/m, '');
-    writeFileSync(cursorSkill, missingVersion);
-    writeFileSync(devinSkill, missingVersion);
-    const missing = [];
-    await runCli(['doctor', 'cursor'], { home, runner, log: (message) => missing.push(message) });
-    assert.match(missing.join('\n'), /version metadata is missing.*update all/i);
+    const currentSkill = readFileSync(agentsSkill, 'utf8');
+    writeFileSync(agentsSkill, currentSkill.replace(`version: "${version}"`, 'version: "0.0.0"'));
+    const outdated = [];
+    await runCli(['doctor', 'agents'], { home, runner, log: (message) => outdated.push(message) });
+    assert.match(outdated.join('\n'), /is outdated \(0\.0\.0; expected/);
+    writeFileSync(agentsSkill, currentSkill);
 
-    writeFileSync(cursorSkill, original);
-    const bodyOnlyTrigger = `${original.replace('triggers: ["user"]\n', '')}\ntriggers: ["user"]\n`;
-    writeFileSync(devinSkill, bodyOnlyTrigger);
-    const bodyMetadata = [];
-    await runCli(['doctor', 'cursor'], { home, runner, log: (message) => bodyMetadata.push(message) });
-    assert.match(bodyMetadata.join('\n'), /invocation metadata differ.*update all/i);
+    writeFileSync(policy, 'other:\n  allow_implicit_invocation: false\n');
+    const missingPolicy = [];
+    await runCli(['doctor', 'agents'], { home, runner, log: (message) => missingPolicy.push(message) });
+    assert.match(missingPolicy.join('\n'), /missing the Codex manual-invocation policy/);
 
-    writeFileSync(devinSkill, original.replace('triggers: ["user"]\n', ''));
-    const metadataDrift = [];
-    await runCli(['doctor', 'cursor'], { home, runner, log: (message) => metadataDrift.push(message) });
-    assert.match(metadataDrift.join('\n'), /invocation metadata differ.*update all/i);
+    writeFileSync(policy, 'policy:\n  allow_implicit_invocation: false\npolicy:\n  allow_implicit_invocation: true\n');
+    const duplicatePolicy = [];
+    await runCli(['doctor', 'agents'], { home, runner, log: (message) => duplicatePolicy.push(message) });
+    assert.match(duplicatePolicy.join('\n'), /missing the Codex manual-invocation policy/);
 
-    writeFileSync(devinSkill, original.replace(/version: "[^"]+"/, 'version: "0.0.0"'));
-    const versionDrift = [];
-    await runCli(['doctor', 'cursor'], { home, runner, log: (message) => versionDrift.push(message) });
-    assert.match(versionDrift.join('\n'), /versions differ.*update all/i);
-
-    writeFileSync(devinSkill, `${original}\n`);
-    const contentDrift = [];
-    await runCli(['doctor', 'devin'], { home, runner, log: (message) => contentDrift.push(message) });
-    assert.match(contentDrift.join('\n'), /copies differ.*update all/i);
-    assert.ok(existsSync(cursorSkill));
+    await runCli(['update', 'agents'], { home, runner, packageRoot: repoRoot });
+    mkdirSync(join(home, '.cursor', 'skills', 'flutter-rules'), { recursive: true });
+    writeFileSync(join(home, '.cursor', 'skills', 'flutter-rules', 'SKILL.md'), readFileSync(agentsSkill));
+    const duplicate = [];
+    await runCli(['doctor', 'agents'], { home, runner, log: (message) => duplicate.push(message) });
+    assert.match(duplicate.join('\n'), /duplicate legacy Cursor copy/);
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
