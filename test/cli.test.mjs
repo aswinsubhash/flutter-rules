@@ -62,6 +62,10 @@ function managerEntry(source, agents = ['Codex']) {
   };
 }
 
+function pinnedEntry(ref, source = 'aswinsubhash/flutter-rules') {
+  return { ...managerEntry(source), ref };
+}
+
 function runOptions(home, runner, output = [], errors = []) {
   return {
     home,
@@ -125,7 +129,7 @@ test('command runner resolves platform shims and rejects directories', () => {
 test('canonical skill is explicit-only, owned, versioned, and policy-safe', () => {
   const inspection = inspectSkillDirectory(join(repoRoot, 'src', 'flutter-rules'), packageVersion);
   assert.equal(inspection.healthy, true);
-  assert.equal(inspection.version, '2.0.0');
+  assert.equal(inspection.version, packageVersion);
   assert.equal(inspection.policyValid, true);
   assert.equal(isOwnedSkillDirectory(join(repoRoot, 'src', 'flutter-rules')), true);
 });
@@ -135,8 +139,8 @@ test('skill inspector rejects stale versions and duplicate policy sections', () 
   const destination = copyCanonical(home);
   try {
     const skillPath = join(destination, 'SKILL.md');
-    writeFileSync(skillPath, readFileSync(skillPath, 'utf8').replace('version: "2.0.0"', 'version: "1.0.0"'));
-    assert.match(inspectSkillDirectory(destination, packageVersion).issues.join(' '), /does not match 2\.0\.0/);
+    writeFileSync(skillPath, readFileSync(skillPath, 'utf8').replace(`version: "${packageVersion}"`, 'version: "1.0.0"'));
+    assert.match(inspectSkillDirectory(destination, packageVersion).issues.join(' '), /Installed version 1\.0\.0 does not match/);
     writeFileSync(join(destination, 'agents', 'openai.yaml'), 'policy:\n  allow_implicit_invocation: false\npolicy:\n  allow_implicit_invocation: true\n');
     assert.equal(inspectSkillDirectory(destination, '1.0.0').policyValid, false);
   } finally {
@@ -178,18 +182,38 @@ test('source validation compares GitHub repository and ref separately', () => {
       'aswinsubhash/flutter-rules#v2.0.0',
     ),
     {
-      valid: true,
+      owned: true,
+      current: true,
       source: 'aswinsubhash/flutter-rules',
       ref: 'v2.0.0',
       local: false,
     },
   );
-  assert.equal(
+  assert.deepEqual(
     sourceStatus(
       { source: 'aswinsubhash/flutter-rules', ref: 'v1.1.2' },
       'aswinsubhash/flutter-rules#v2.0.0',
-    ).valid,
-    false,
+    ),
+    {
+      owned: true,
+      current: false,
+      source: 'aswinsubhash/flutter-rules',
+      ref: 'v1.1.2',
+      local: false,
+    },
+  );
+  assert.deepEqual(
+    sourceStatus(
+      { source: 'someone-else/flutter-rules', ref: 'v2.0.0' },
+      'aswinsubhash/flutter-rules#v2.0.0',
+    ),
+    {
+      owned: false,
+      current: false,
+      source: 'aswinsubhash/flutter-rules',
+      ref: 'v2.0.0',
+      local: false,
+    },
   );
 });
 
@@ -245,7 +269,7 @@ test('targetless install verifies the canonical skill and source', async () => {
   });
   try {
     assert.equal(await runCli(['install'], runOptions(home, runner, output, errors)), 0);
-    assert.match(output.join('\n'), /Installed Flutter Rules 2\.0\.0/);
+    assert.match(output.join('\n'), new RegExp(`Installed Flutter Rules ${packageVersion.replaceAll('.', '\\.')}`));
     assert.equal(errors.length, 0);
     assert.deepEqual(runner.calls[1].args.slice(1, 4), ['add', 'test-source', '--skill']);
   } finally {
@@ -394,7 +418,7 @@ test('explicit Claude install migrates an owned stale v1 copy', async () => {
   const skillPath = join(claudePath, 'SKILL.md');
   writeFileSync(
     skillPath,
-    readFileSync(skillPath, 'utf8').replace('version: "2.0.0"', 'version: "1.1.2"'),
+    readFileSync(skillPath, 'utf8').replace(`version: "${packageVersion}"`, 'version: "1.1.2"'),
   );
   const runner = fakeRunner({
     responses: [
@@ -433,6 +457,83 @@ test('update refreshes Claude only when its integration already exists', async (
   try {
     assert.equal(await runCli(['update'], runOptions(home, runner)), 0);
     assert.equal(runner.calls.filter((call) => call.args.includes('add')).length, 2);
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test('update accepts the same repository pinned to an older ref', async () => {
+  const home = tempHome();
+  const output = [];
+  copyCanonical(home);
+  const runner = fakeRunner({
+    responses: [
+      { code: 0, stdout: JSON.stringify([pinnedEntry('v2.0.0')]), stderr: '' },
+      { code: 0, stdout: '', stderr: '' },
+      { code: 0, stdout: JSON.stringify([pinnedEntry(`v${packageVersion}`)]), stderr: '' },
+    ],
+  });
+  const options = runOptions(home, runner, output);
+  options.env.FLUTTER_RULES_SKILL_SOURCE = `aswinsubhash/flutter-rules#v${packageVersion}`;
+  try {
+    assert.equal(await runCli(['update'], options), 0);
+    assert.match(output.join('\n'), /Updated Flutter Rules/);
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test('uninstall accepts the same repository pinned to an older ref', async () => {
+  const home = tempHome();
+  const output = [];
+  copyCanonical(home);
+  const runner = fakeRunner({
+    responses: [
+      { code: 0, stdout: JSON.stringify([pinnedEntry('v2.0.0')]), stderr: '' },
+      { code: 0, stdout: '', stderr: '' },
+    ],
+  });
+  const options = runOptions(home, runner, output);
+  options.env.FLUTTER_RULES_SKILL_SOURCE = 'aswinsubhash/flutter-rules#v99.0.0';
+  try {
+    assert.equal(await runCli(['uninstall'], options), 0);
+    assert.equal(existsSync(join(home, '.agents', 'skills', 'flutter-rules')), false);
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test('install still refuses a registration from another repository', async () => {
+  const home = tempHome();
+  copyCanonical(home);
+  const runner = fakeRunner({
+    responses: [
+      { code: 0, stdout: JSON.stringify([pinnedEntry('v2.0.0', 'someone-else/flutter-rules')]), stderr: '' },
+    ],
+  });
+  const options = runOptions(home, runner);
+  options.env.FLUTTER_RULES_SKILL_SOURCE = 'aswinsubhash/flutter-rules#v2.0.0';
+  try {
+    await assert.rejects(runCli(['install'], options), /Refusing to overwrite Flutter Rules registered from/);
+    assert.equal(runner.calls.length, 1);
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test('doctor separates a stale ref from an unrecognized repository', async () => {
+  const home = tempHome();
+  const errors = [];
+  copyCanonical(home);
+  const runner = fakeRunner({
+    responses: [{ code: 0, stdout: JSON.stringify([pinnedEntry('v2.0.0')]), stderr: '' }],
+  });
+  const options = runOptions(home, runner, [], errors);
+  options.env.FLUTTER_RULES_SKILL_SOURCE = 'aswinsubhash/flutter-rules#v99.0.0';
+  try {
+    assert.equal(await runCli(['doctor'], options), 1);
+    assert.match(errors.join('\n'), /pinned to aswinsubhash\/flutter-rules#v2\.0\.0; run `flutter-rules update`/);
+    assert.doesNotMatch(errors.join('\n'), /missing or unexpected/);
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
@@ -523,7 +624,7 @@ test('doctor JSON emits stable healthy schema', async () => {
     const payload = JSON.parse(output[0]);
     assert.equal(payload.schemaVersion, 1);
     assert.equal(payload.healthy, true);
-    assert.equal(payload.canonical.version, '2.0.0');
+    assert.equal(payload.canonical.version, packageVersion);
     assert.deepEqual(payload.legacy.artifacts, []);
   } finally {
     rmSync(home, { recursive: true, force: true });
@@ -575,7 +676,7 @@ test('doctor reports stale and legacy state as unhealthy', async () => {
   copyCanonical(home);
   copyCanonical(home, legacy);
   const skillPath = join(home, '.agents', 'skills', 'flutter-rules', 'SKILL.md');
-  writeFileSync(skillPath, readFileSync(skillPath, 'utf8').replace('version: "2.0.0"', 'version: "1.0.0"'));
+  writeFileSync(skillPath, readFileSync(skillPath, 'utf8').replace(`version: "${packageVersion}"`, 'version: "1.0.0"'));
   const runner = fakeRunner({
     responses: [{ code: 0, stdout: JSON.stringify([managerEntry('wrong-source')]), stderr: '' }],
   });
