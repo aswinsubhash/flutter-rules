@@ -21,9 +21,13 @@ const required = [
   'bin/flutter-rules.mjs',
   'lib/cli.mjs',
   'lib/command-runner.mjs',
-  'lib/fs-utils.mjs',
-  'lib/render-skill.mjs',
+  'lib/legacy-cleanup.mjs',
+  'lib/skill-inspector.mjs',
+  'lib/skills-manager.mjs',
   'src/flutter-rules/SKILL.md',
+  'src/flutter-rules/agents/openai.yaml',
+  'src/flutter-rules/references/dart.md',
+  'src/flutter-rules/references/testing.md',
   'README.md',
   'LICENSE',
 ];
@@ -36,7 +40,9 @@ const allowed = (file) =>
   file === 'LICENSE' ||
   file.startsWith('bin/') ||
   file.startsWith('lib/') ||
-  file.startsWith('src/flutter-rules/');
+  file === 'src/flutter-rules/SKILL.md' ||
+  file === 'src/flutter-rules/agents/openai.yaml' ||
+  /^src\/flutter-rules\/references\/[^/]+\.md$/.test(file);
 
 for (const file of files) assert.ok(allowed(file), `Unexpected package file ${file}`);
 console.log(`Package contents verified (${files.length} files).`);

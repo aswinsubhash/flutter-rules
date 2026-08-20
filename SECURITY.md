@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-Security fixes are applied to the latest `1.x` release. Upgrade to the newest
+Security fixes are applied to the latest `2.x` release. Upgrade to the newest
 release before reporting a problem that may already be resolved.
 
 ## Reporting a vulnerability
@@ -15,6 +15,6 @@ Include the affected version and host, reproduction steps, potential impact,
 and any suggested mitigation. Remove credentials, tokens, proprietary code,
 and other sensitive data from the report.
 
-Relevant reports include vulnerabilities in the installation scripts,
-host-specific packaging, distribution process, or guidance that could cause an
-agent to expose secrets or perform unsafe operations.
+Relevant reports include vulnerabilities in the installer, migration cleanup,
+distribution process, or guidance that could cause an agent to expose secrets
+or perform unsafe operations.
