@@ -1,6 +1,6 @@
 # Architecture Rules
 
-## 1) Dependency direction
+## Dependency direction
 - Use the dependency graph `presentation -> domain <- data`; both outer layers
   depend on Domain contracts, while DI wires implementations at the boundary.
 - **Domain must not import Data or Presentation.**
@@ -12,7 +12,7 @@
   handle external systems; repositories translate their results into Domain
   contracts.
 
-## 2) Feature boundaries
+## Feature boundaries
 - Keep feature internals inside `lib/features/<feature>/...`.
 - Expose feature entry points through `lib/features/<feature>/<feature>.dart`.
 - App-level modules (router/DI/app) should import feature barrel files, not deep paths.
@@ -38,7 +38,7 @@ lib/features/<feature>/
     <feature>_injection.dart
 ```
 
-## 3) Result-based error flow
+## Result-based error flow
 
 ```text
 datasource  -> throws typed exception
@@ -56,12 +56,12 @@ bloc/cubit  -> folds Result -> emits presentation state
   `Result` contracts to presentation.
 - BLoCs/Cubits consume `Result.fold(...)` for success/failure handling.
 
-### 3a) File locations (mandatory)
+### File locations (mandatory)
 - `lib/core/error/result.dart` — `Result<T>` class.
 - `lib/core/error/failures.dart` — all `Failure` subclasses.
 - `lib/core/error/exceptions.dart` — all `Exception` subclasses.
 
-### 3b) `Result<T>` representation
+### `Result<T>` representation
 - Preserve the project's existing `Result` representation when it provides
   explicit success and failure variants.
 - When introducing `Result<T>`, use either a sealed success/failure hierarchy or
@@ -72,13 +72,13 @@ bloc/cubit  -> folds Result -> emits presentation state
 - Expose exhaustive handling through `fold`, pattern matching, or an equivalent
   project-standard API.
 
-### 3c) `Failure` representation
+### `Failure` representation
 - Preserve the project's existing failure base type and value-equality approach.
   When it uses `Equatable`, include every identity-relevant field in `props`.
 - Keep only broadly shared failures in core, such as server, cache, network, and
   session failures. Define feature-specific failures inside the owning feature.
 
-### 3d) `Exception` representation
+### `Exception` representation
 - Use typed exceptions at data boundaries and preserve the project's existing
   exception contracts.
 - Exceptions may carry safe technical details or stable reason codes, but must
@@ -86,7 +86,7 @@ bloc/cubit  -> folds Result -> emits presentation state
 - Keep broadly shared server, cache, network, and session exceptions in core;
   define feature-specific exceptions inside the owning feature.
 
-### 3e) Exception → Failure mapping convention
+### Exception → Failure mapping convention
 Repository implementations catch typed exceptions and map 1:1:
 
 | Exception | Failure |
@@ -100,11 +100,11 @@ Map feature-specific exceptions inside their owning repository. Presentation
 maps failure types or reason codes to localized user-facing copy; never display
 raw exception text.
 
-## 4) DI composition
+## DI composition
 - Each feature owns a `di/<feature>_injection.dart` initializer.
 - `core/di/injection.dart` is composition root and calls feature initializers.
 
-## 5) Local persistence and secret handling
+## Local persistence and secret handling
 - Use `SharedPreferences` for non-sensitive preferences such as locale, theme,
   onboarding state, and approved non-secret display data.
 - Use secure storage for authentication and sensitive identifiers, including
@@ -119,7 +119,7 @@ raw exception text.
   authenticated state before cleanup and expose a session only after secure
   values have been successfully validated.
 
-## 6) Import hygiene
+## Import hygiene
 - Inside a feature layer, prefer precise relative imports over broad cross-layer barrels.
 - Avoid importing another feature's internals directly.
 - Avoid `core.dart` when a narrow import is sufficient in domain/data layers.
@@ -132,7 +132,7 @@ raw exception text.
 - **Cross-feature imports**: Avoid where possible; if necessary, import via the target feature's barrel file.
 - Prefer one canonical import style per file; remove unused and duplicate imports.
 
-## 7) Barrel policy
+## Barrel policy
 - Feature barrel files (`lib/features/<feature>/<feature>.dart`) export only
   intentional public APIs:
     - **Pages**: Main entry pages consumed by routing.
@@ -144,7 +144,7 @@ raw exception text.
 - App-level modules (Router, DI setup) should import these barrel files exclusively for a clean, flat import structure.
 - Do not use barrel exports to bypass layer boundaries internally.
 
-## 8) Routing boundary
+## Routing boundary
 - `AppRouter` owns route definitions and authenticated shell composition; use a
   `StatefulShellRoute` when the app has persistent tab navigation.
 - Provision route-scoped BLoCs/Cubits during route composition. Pages consume
@@ -152,7 +152,7 @@ raw exception text.
 - Keep go_router behavior and tab-specific details in `references/navigation.md`
   and route-level Bloc/widget details in `references/state.md`.
 
-## 9) Definition of Done (architecture)
+## Definition of Done (architecture)
 - No layer-direction violations.
 - Repository/usecase signatures use `Result` consistently.
 - Router/DI imports use feature public entry points.

@@ -1,6 +1,6 @@
 # API / Request Model Rules
 
-## 1) Dio Client Baseline
+## Dio Client Baseline
 - When adding core networking, create the baseline from this repository's needs; do not copy endpoint lists, session fields, or storage behavior from another project unless the user explicitly asks for those details.
 - `lib/core/network/api_endpoints.dart` may start as an empty `abstract final class ApiEndpoints {}`. Add endpoint constants only when implementing the feature that uses them.
 - `lib/core/storage/user_session.dart` may start as an empty `class UserSession {}`. Add persistence fields/dependencies only when auth/session storage is requested.
@@ -48,7 +48,7 @@ abstract final class Env {
 - Do not copy monitoring hooks (for example `AppMonitoring`) unless the project already has that module.
 - Add only required dependencies, usually `dio` for the baseline client.
 
-## 8) Request Models (POST/PUT/PATCH Only)
+## Request Models (POST/PUT/PATCH Only)
 - POST/PUT/PATCH operations must use dedicated request models in `data/models/<operation>_request_model.dart`
 - Each request model must have `toJson()` method for serialization
 - If corresponding domain usecase exists (e.g. `UpdateProfileData`), request model must have `fromParams()` factory

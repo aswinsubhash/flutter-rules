@@ -1,13 +1,13 @@
 # State Management Rules
 
-## 14) Cubit vs BLoC Selection
+## Cubit vs BLoC Selection
 - Prefer `Cubit` for simple state transitions that do not need explicit events.
 - Use `Bloc` for complex flows, event traceability, or event transformers such
   as debounce and throttle.
 - Both are preferred over `setState` for business, validation, fetched, or
   persistent state. Keep `setState` for local UI-only state.
 
-## 15) State Modeling
+## State Modeling
 - Prefer one immutable `<Feature>State` with a status enum when states share
   data or previous data should remain available after a failure.
 - Use a sealed state hierarchy when states are mutually exclusive, carry
@@ -26,7 +26,7 @@
 - Extract each status or state branch into a focused private builder so page
   `build` methods remain orchestration-focused.
 
-## 16) Events and Transitions
+## Events and Transitions
 - Name `Bloc` events in the past tense: `LoginSubmitted`,
   `ProfileRefreshRequested`, and `AuthenticationStarted` for the initial load.
 - Use `<Feature>Event` as the base event name and keep event-handler methods
@@ -41,13 +41,7 @@
 - When overriding storage in a `HydratedCubit`, pass it as the named `storage:`
   argument to the superclass.
 
-## 17) State Management Rule (BLoC Preference)
-- Prefer handling state updates through `Cubit` or `Bloc` for separation,
-  testability, and consistent UI updates.
-- Any state related to data fetching, validation logic, or persistent app state
-  must reside in a `Cubit` or `Bloc`.
-
-## 18) Logic Isolation (Private Methods)
+## Logic Isolation (Private Methods)
 - Presentation pages may isolate input collection and event dispatch in dedicated
   private methods (for example, `_onLogin` or `_onSubmitted`). Business
   validation and decisions must remain in the Cubit, Bloc, or domain layer.
@@ -57,7 +51,7 @@
 - **Method Signatures**: Private logic methods should typically accept `BuildContext` and the relevant BLoC `State` as parameters to ensure consistent and reliable access to the latest data and context.
 - This practice improves code readability, makes UI components purely orchestration-focused, and facilitates easier debugging of functional logic.
 
-## 19) Architecture Boundaries
+## Architecture Boundaries
 - Follow the feature structure `data/`, `di/`, `domain/`,
   `presentation/bloc/`, `presentation/pages/`, `presentation/widgets/`, and a
   public `<feature>.dart` barrel.
@@ -75,7 +69,7 @@
   listener to bridge side effects or inject a shared repository when state is
   genuinely shared.
 
-## 19a) Connectivity BLoC Baseline (Project Setup)
+## Connectivity BLoC Baseline (Project Setup)
 - Add connectivity monitoring only when the task requires it. Reuse the
   project's existing checker, state manager, and folder conventions.
 - If adopting `internet_checker_plus` is explicitly in scope, use its status
@@ -84,13 +78,13 @@
 - Provide `ConnectivityBloc` once at the app root above `MaterialApp.router`; do not create it inside pages.
 - Export the bloc from `core/core.dart` so app/root widgets can consume it consistently.
 
-## 20) Route-level BLoC Provisioning
+## Route-level BLoC Provisioning
 - BLoCs/Cubits for a page/flow should be provided at the **route level** whenever that state belongs to the route lifecycle.
 - Prefer creating route-scoped BLoCs inside `GoRoute.pageBuilder` / router composition instead of instantiating them inside page widgets.
 - Pages should consume already-provided BLoCs and remain focused on presentation orchestration.
 - Only use more local provisioning when the state is intentionally scoped to a smaller extracted subtree and not the full route.
 
-## 21) Flutter Bloc Widgets and Scaffold Scope
+## Flutter Bloc Widgets and Scaffold Scope
 
 ### Providers
 
@@ -150,7 +144,7 @@ return Scaffold(
 );
 ```
 
-## 22) Bloc Diagnostics
+## Bloc Diagnostics
 - Override `onChange`, `onError`, or `onTransition` only when the additional
   diagnostics are useful for the current feature.
 - Configure a global `BlocObserver` once at the app root when global state or
@@ -158,18 +152,18 @@ return Scaffold(
   credentials, or sensitive state fields; the debug-only HTTP logging exception
   in `references/api.md` does not apply to state diagnostics.
 
-## 23) Testing Cubits and Blocs
+## Testing Cubits and Blocs
 - Use the project's existing state-test and mocking tools. Use `bloc_test` for
   state-emission assertions when it is already available or adding it is within
   task scope.
-- Group tests by the class under test, name cases with `should`, and cover the
-  initial state plus success, loading, and failure transitions.
+- Follow the project's test organization and naming style. Cover the initial
+  state and relevant success, loading, and failure transitions.
 - Close every Cubit or Bloc in `tearDown` and register fallback values for
   custom mocktail types when required.
 - Keep tests focused on observable state transitions and side-effect decisions;
   do not test private handler implementation details.
 
-## 24) Common State-Management Pitfalls
+## Common State-Management Pitfalls
 - Do not emit the same state instance twice; meaningful state changes require a
   new instance and complete value-equality fields.
 - Do not mutate state lists or maps in place.

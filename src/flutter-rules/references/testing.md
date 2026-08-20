@@ -17,9 +17,10 @@
 
 ## Organization and Naming
 
-- Always use `group()`, even when a file contains one test, and name the group
-  after the class or behavior under test.
-- Name test cases with “should” and describe the expected behavior, for example:
+- Follow the project's existing test organization and naming style. Use
+  `group()` when it makes multiple related cases easier to navigate.
+- Name each test after its observable behavior and expected outcome. A “should”
+  style is acceptable when it matches the project, for example:
 
 ```dart
 test('value should start at 0', () {

@@ -152,7 +152,7 @@
       <span>Audit date: 2026-08-20</span>
       <span>30 actionable fixes</span>
       <span>No app code reviewed</span>
-      <span>12 critical/high fixes applied</span>
+      <span>18 audit fixes applied</span>
     </div>
 
     <section class="summary" aria-label="Risk summary">
@@ -372,42 +372,42 @@
         <dl><dt>Risk</dt><dd>Large reorder-only diffs and merge conflicts without behavior improvement.</dd><dt>Fix</dt><dd class="fix">Follow existing style. Apply preferred ordering only to new code when no convention exists.</dd><dt>Source</dt><dd class="source"><code>ui.md:77-86</code></dd></dl>
       </article>
 
-      <article class="issue low" data-tier="low" data-status="todo">
+      <article class="issue low" data-tier="low" data-status="done">
         <div class="issue-head"><span class="id">R-25</span><span class="badge">Low</span></div>
         <h3>Section numbering is inherited and inconsistent</h3>
         <p>Files jump between unrelated numbers: API 1→8, UI 13→16→21, quality 8→10, navigation 14→19.</p>
         <dl><dt>Risk</dt><dd>References become confusing during maintenance.</dd><dt>Fix</dt><dd class="fix">Remove numbers or number independently within each file.</dd><dt>Source</dt><dd class="source"><code>api.md</code>, <code>ui.md</code>, <code>quality.md</code>, <code>navigation.md</code></dd></dl>
       </article>
 
-      <article class="issue low" data-tier="low" data-status="todo">
+      <article class="issue low" data-tier="low" data-status="done">
         <div class="issue-head"><span class="id">R-26</span><span class="badge">Low</span></div>
         <h3>Cubit/Bloc preference is duplicated</h3>
         <p>State sections 14 and 17 repeat nearly identical ownership guidance.</p>
         <dl><dt>Risk</dt><dd>Future edits can change one copy but not the other.</dd><dt>Fix</dt><dd class="fix">Merge into one selection and ownership section.</dd><dt>Source</dt><dd class="source"><code>state.md:3-8, 43-47</code></dd></dl>
       </article>
 
-      <article class="issue low" data-tier="low" data-status="todo">
+      <article class="issue low" data-tier="low" data-status="done">
         <div class="issue-head"><span class="id">R-27</span><span class="badge">Low</span></div>
         <h3>Spacing widget advice disagrees</h3>
         <p>UI guidance recommends purpose-specific <code>SizedBox</code>, then requires ScreenUtil spacing extensions instead of <code>SizedBox</code>.</p>
         <dl><dt>Risk</dt><dd>Minor inconsistent code-review output.</dd><dt>Fix</dt><dd class="fix">State that spacing follows existing responsive-sizing convention; otherwise use SizedBox.</dd><dt>Source</dt><dd class="source"><code>ui.md:9-11, 61-67</code></dd></dl>
       </article>
 
-      <article class="issue low" data-tier="low" data-status="todo">
+      <article class="issue low" data-tier="low" data-status="done">
         <div class="issue-head"><span class="id">R-28</span><span class="badge">Low</span></div>
         <h3>Analyzer example assumes fixed directories</h3>
         <p><code>flutter analyze lib/app lib/core lib/features</code> assumes every project has those paths.</p>
         <dl><dt>Risk</dt><dd>Validation command fails or encourages canonical-folder creation.</dd><dt>Fix</dt><dd class="fix">Use plain <code>flutter analyze</code>, or analyze paths that actually exist in current project.</dd><dt>Source</dt><dd class="source"><code>quality.md:3-9</code></dd></dl>
       </article>
 
-      <article class="issue low" data-tier="low" data-status="todo">
+      <article class="issue low" data-tier="low" data-status="done">
         <div class="issue-head"><span class="id">R-29</span><span class="badge">Low</span></div>
         <h3>Test naming and grouping are universalized</h3>
         <p>Every test must use <code>group()</code> and “should” naming even when project convention differs or one flat test is clearer.</p>
         <dl><dt>Risk</dt><dd>Style-only rewrites and awkward names.</dd><dt>Fix</dt><dd class="fix">Follow project convention; use grouping when it improves organization.</dd><dt>Source</dt><dd class="source"><code>testing.md:18-30</code></dd></dl>
       </article>
 
-      <article class="issue low" data-tier="low" data-status="todo">
+      <article class="issue low" data-tier="low" data-status="done">
         <div class="issue-head"><span class="id">R-30</span><span class="badge">Low</span></div>
         <h3>Semantic color alias example couples unrelated meanings</h3>
         <p><code>warning = paid</code> reuses a semantic token by another semantic name rather than sharing a primitive palette value.</p>

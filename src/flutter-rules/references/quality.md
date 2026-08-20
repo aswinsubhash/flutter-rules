@@ -1,14 +1,14 @@
 # Code Quality Rules
 
-## 7) Mandatory Analysis (Flutter Analyze)
-- Run `flutter analyze` after every new implementation or refactor.
-- Run:
-  `flutter analyze` or `flutter analyze lib/app lib/core lib/features`
+## Mandatory Analysis (Flutter Analyze)
+- Run `flutter analyze` from the project root after every new implementation or
+  refactor. Use a documented project-specific target only when those paths
+  actually exist.
 - Ensure the current changes introduce zero analyzer issues. Fix issues caused
   by those changes; report unrelated pre-existing issues without modifying them
   unless explicitly requested.
 
-## 8) Sensitive storage verification
+## Sensitive storage verification
 - Add or update tests whenever session persistence changes.
 - Assert that tokens, credentials, user IDs, and other sensitive identifiers
   are absent from `SharedPreferences`.
@@ -19,13 +19,13 @@
 - Review diffs for plaintext secrets in logs, URLs, analytics, fixtures, or
   test output before finalizing.
 
-## 10) AI-generated code cleanup policy
+## AI-generated code cleanup policy
 - Never leave obvious AI artifacts (verbose boilerplate, duplicated helper layers, unnatural naming).
 - Prefer existing project style and patterns over generic generated patterns.
 - Before finalizing, simplify any generated code to the minimum clear implementation.
 - Remove placeholder/todo-generated blocks unless explicitly requested by product scope.
 
-## 11) Documentation & comments
+## Documentation & comments
 
 Document the project in three places only:
 
