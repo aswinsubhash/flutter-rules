@@ -16,6 +16,13 @@ const FINDING_STATUSES = ['confirmed', 'needs-verification'];
 const PROVENANCES = ['introduced', 'affected-pre-existing', 'unknown'];
 const RECOMMENDATIONS = ['block', 'fix-before-merge', 'merge-with-follow-up', 'ready'];
 const CHANGE_KINDS = ['added', 'modified', 'deleted', 'renamed', 'affected'];
+const CHANGE_KIND_LABELS = {
+  added: 'directly added',
+  modified: 'directly modified',
+  deleted: 'directly deleted',
+  renamed: 'directly renamed',
+  affected: 'related surface',
+};
 const BASIS_TYPES = ['flutter-rule', 'requirement', 'correctness', 'security', 'testing'];
 const VALIDATION_STATUSES = ['passed', 'failed', 'blocked', 'not-run'];
 const SECRET_PATTERNS = [
@@ -414,7 +421,7 @@ export function renderReviewReport(report, {
   const scriptHash = createHash('sha256').update(normalizedJavaScript).digest('base64');
 
   const changes = sectionCards(report.changes, (change) => `<article class="change-card-item">
-    <div class="change-badge ${change.kind}">${escapeHtml(change.kind)}</div>
+    <div class="change-badge ${change.kind}">${escapeHtml(CHANGE_KIND_LABELS[change.kind])}</div>
     <h3 class="change-summary">${escapeHtml(change.summary)}</h3>
     <div class="change-details-grid">
       <div><span class="meta-label">Modules</span>${list(change.modules, 'tag-list')}</div>
@@ -501,7 +508,7 @@ export function renderReviewReport(report, {
 
     ${section('scope', 'Review Scope', 'Directly changed files and their immediate dependency radius.', `<div class="scope-card"><div class="scope-header">Target Files (${report.metadata.scope.length})</div>${list(report.metadata.scope, 'file-tree-list')}</div>`, report.metadata.scope.length)}
 
-    ${section('change-impact', 'Change Impact', 'Surface area and architectural layer modifications.', changes, report.changes.length)}
+    ${section('change-impact', 'Change Impact', 'Direct edits and related dependency surfaces reviewed.', changes, report.changes.length)}
 
     ${section('findings', 'Findings', 'Review, analyze evidence, and determine follow-up actions.', `${report.findings.length ? `<div class="filters-panel" role="search" aria-label="Filter findings">
         <div class="search-wrap">

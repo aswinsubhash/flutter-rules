@@ -16,6 +16,7 @@
     "src/flutter-rules/scripts/*.mjs",
     "src/flutter-rules/assets/*.css",
     "src/flutter-rules/assets/*.js",
+    "docs/assets/*.png",
     "LICENSE",
     "README.md"
   ],

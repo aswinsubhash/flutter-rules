@@ -59,7 +59,8 @@ const allowed = (file) =>
   /^src\/flutter-rules\/references\/[^/]+\.md$/.test(file) ||
   /^src\/flutter-rules\/schemas\/[^/]+\.json$/.test(file) ||
   /^src\/flutter-rules\/scripts\/[^/]+\.mjs$/.test(file) ||
-  /^src\/flutter-rules\/assets\/[^/]+\.(css|js)$/.test(file);
+  /^src\/flutter-rules\/assets\/[^/]+\.(css|js)$/.test(file) ||
+  /^docs\/assets\/[^/]+\.png$/.test(file);
 
 for (const file of files) assert.ok(allowed(file), `Unexpected package file ${file}`);
 console.log(`Package contents verified (${files.length} files).`);

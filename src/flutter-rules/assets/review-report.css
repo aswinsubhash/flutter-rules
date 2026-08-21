@@ -937,6 +937,7 @@ main { padding-bottom: 60px; }
 
 .change-badge {
   display: inline-block;
+  white-space: nowrap;
   font-size: 0.6875rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -1048,6 +1049,7 @@ tbody tr + tr td { border-top: 1px solid var(--border-subtle); }
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  white-space: nowrap;
   font-weight: 600;
   font-size: 0.75rem;
   text-transform: uppercase;

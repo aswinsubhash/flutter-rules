@@ -37,6 +37,12 @@ function reportFixture() {
         modules: ['auth', 'session'],
         files: ['lib/features/auth/auth.dart'],
       },
+      {
+        kind: 'affected',
+        summary: 'Checks route-level session consumers.',
+        modules: ['routing'],
+        files: ['lib/app/router.dart'],
+      },
     ],
     findings: [
       {
@@ -156,6 +162,9 @@ test('complete report validates and renders every review section', () => {
   assert.doesNotMatch(html, /<script\s+src=/);
   assert.doesNotMatch(html, /<link\s+[^>]*href=/);
   assert.doesNotMatch(html, /type="checkbox"|type="radio"|<form/);
+  assert.match(html, /Direct edits and related dependency surfaces reviewed\./);
+  assert.match(html, /change-badge modified">directly modified/);
+  assert.match(html, /change-badge affected">related surface/);
   assert.ok(html.indexOf('AUTH-1') < html.indexOf('AUTH-2'));
 });
 
@@ -167,6 +176,7 @@ test('report defaults to the light theme and offers an accessible toggle', () =>
   const css = readFileSync(resolve('src/flutter-rules/assets/review-report.css'), 'utf8');
   assert.match(css, /^:root \{\n {2}color-scheme: light;/m);
   assert.match(css, /\[data-theme="dark"\] \{/);
+  assert.match(css, /\.status-indicator \{[\s\S]*white-space: nowrap;/);
   const javascript = readFileSync(resolve('src/flutter-rules/assets/review-report.js'), 'utf8');
   assert.match(javascript, /storedTheme\(\) \?\? 'light'/);
 });
@@ -188,6 +198,7 @@ test('finding layout remains readable with long paths and dense content', () => 
   assert.doesNotMatch(html, / style="/);
   const css = readFileSync(resolve('src/flutter-rules/assets/review-report.css'), 'utf8');
   assert.match(css, /grid-template-columns: minmax\(0, 1\.7fr\) minmax\(280px, 1fr\)/);
+  assert.match(css, /\.change-badge \{[\s\S]*white-space: nowrap;/);
   assert.match(css, /overflow-wrap: anywhere/);
   assert.match(css, /@media \(max-width: 960px\)[\s\S]*\.finding-two-col \{ grid-template-columns: 1fr; \}/);
   assert.doesNotMatch(css, /radial-gradient|linear-gradient|border-radius: 999px/);

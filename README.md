@@ -94,6 +94,29 @@ filterable view with all assets embedded. The skill attempts to open the HTML in
 the default browser and prints its absolute path when automatic opening is not
 available.
 
+The review report is a human-in-the-loop workflow: the agent gathers evidence,
+classifies findings, records validation limits, and presents the result for a
+human release decision. Findings can be searched, filtered, expanded, deep-linked,
+and copied as fix instructions to send back to the agent. The report is
+display-only; it never changes application code automatically.
+
+### Review report preview
+
+The report is designed to make review scope, actionable findings, and verification
+limits easy to scan:
+
+<p align="center">
+  <img src="docs/assets/feature-review-overview.png" alt="Feature review report overview showing executive summary, review scope, and change impact" width="960">
+</p>
+
+<p align="center">
+  <img src="docs/assets/feature-review-findings.png" alt="Expanded feature review finding with evidence, remediation, verification, and affected files" width="960">
+</p>
+
+<p align="center">
+  <img src="docs/assets/feature-review-validation.png" alt="Feature review validation results, passed checks, unverified areas, limitations, and classification reference" width="960">
+</p>
+
 A feature review does not modify application code or implement its findings.
 Choose the changes you want after reading the report, then give the agent that
 follow-up scope. If the reports directory is not already ignored, the agent must
