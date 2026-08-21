@@ -145,15 +145,16 @@ test('complete report validates and renders every review section', () => {
   assert.equal(validateReviewReport(report), report);
   const html = renderReviewReport(report);
   for (const heading of [
-    'Executive summary',
-    'Change impact',
+    'Executive Summary',
+    'Review Scope',
+    'Change Impact',
     'Findings',
-    'Validation',
-    'Passed checks',
-    'Affected pre-existing issues',
-    'Unverified areas',
-    'Limitations',
-    'Classification guide',
+    'Automated Validation',
+    'Passed Checks',
+    'Pre-existing Issues',
+    'Unverified Areas',
+    'Review Limitations',
+    'Classification Reference',
   ]) assert.match(html, new RegExp(heading));
   assert.match(html, /Content-Security-Policy/);
   assert.match(html, /default-src 'none'/);
@@ -161,7 +162,6 @@ test('complete report validates and renders every review section', () => {
   assert.match(html, /style-src 'sha256-[A-Za-z0-9+/=]+'/);
   assert.doesNotMatch(html, /unsafe-inline/);
   assert.match(html, /data-filter="severity"/);
-  assert.match(html, /Display-only report/);
   assert.doesNotMatch(html, /<script\s+src=/);
   assert.doesNotMatch(html, /<link\s+[^>]*href=/);
   assert.doesNotMatch(html, /type="checkbox"|type="radio"|<form/);
@@ -178,6 +178,28 @@ test('report defaults to the light theme and offers an accessible toggle', () =>
   assert.match(css, /\[data-theme="dark"\] \{/);
   const javascript = readFileSync(resolve('src/flutter-rules/assets/review-report.js'), 'utf8');
   assert.match(javascript, /storedTheme\(\) \?\? 'light'/);
+});
+
+test('finding layout remains readable with long paths and dense content', () => {
+  const report = reportFixture();
+  const longPath = 'lib/features/register/presentation/widgets/registration_error_localization_message_mapper.dart';
+  report.findings[0].affectedFiles = [longPath];
+  report.findings[0].relevantChanges = [
+    'Repository failures are mapped into localized presentation messages without exposing backend error text.',
+    'The registration page now renders operation-specific validation feedback.',
+  ];
+  const html = renderReviewReport(report);
+  assert.match(html, /class="finding-two-col"/);
+  assert.match(html, /class="finding-primary-col"/);
+  assert.match(html, /class="finding-sidebar-col"/);
+  assert.match(html, /class="action-card remediation-card"/);
+  assert.match(html, new RegExp(longPath.replaceAll('.', '\\.')));
+  assert.doesNotMatch(html, / style="/);
+  const css = readFileSync(resolve('src/flutter-rules/assets/review-report.css'), 'utf8');
+  assert.match(css, /grid-template-columns: minmax\(0, 1\.7fr\) minmax\(280px, 1fr\)/);
+  assert.match(css, /overflow-wrap: anywhere/);
+  assert.match(css, /@media \(max-width: 960px\)[\s\S]*\.finding-two-col \{ grid-template-columns: 1fr; \}/);
+  assert.doesNotMatch(css, /radial-gradient|linear-gradient|border-radius: 999px/);
 });
 
 test('renderer normalizes inlined asset line endings for stable CSP hashes', () => {
@@ -210,7 +232,7 @@ test('renderer computes counts and supports an honest empty-findings state', () 
   assert.match(html, /Review validation and unverified areas/);
   assert.doesNotMatch(html, /<select data-filter="severity"/);
   for (const severity of ['critical', 'high', 'medium', 'low']) {
-    assert.match(html, new RegExp(`<div class="stat ${severity}"><span class="stat-value">0</span>`));
+    assert.match(html, new RegExp(`<div class="metric-card ${severity}"><div class="metric-num">0</div>`));
   }
 });
 
@@ -219,7 +241,7 @@ test('renderer distinguishes unverified findings from an empty review', () => {
   report.findings = [report.findings[1]];
   const html = renderReviewReport(report);
   assert.match(html, /No confirmed findings were recorded/);
-  assert.match(html, /Needs verification/);
+  assert.match(html, /Needs Verification/);
   assert.doesNotMatch(html, /No findings were recorded\./);
 });
 

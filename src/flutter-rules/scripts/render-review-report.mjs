@@ -250,14 +250,6 @@ function list(values, className = 'bullets') {
   return `<ul class="${className}">${values.map((value) => `<li>${escapeHtml(value)}</li>`).join('')}</ul>`;
 }
 
-function badge(label, className = '') {
-  return `<span class="badge ${className}">${escapeHtml(label)}</span>`;
-}
-
-function detail(label, body) {
-  return `<div class="detail-row"><span class="label">${label}</span>${body}</div>`;
-}
-
 function searchIndex(finding) {
   return [
     finding.id,
@@ -274,41 +266,106 @@ function searchIndex(finding) {
   ].join(' ').toLowerCase();
 }
 
+function formatExcerptWithGutters(excerpt, lineStart) {
+  if (!excerpt) return '';
+  const lines = excerpt.split('\n');
+  const startNum = Number.isInteger(lineStart) && lineStart > 0 ? lineStart : 1;
+  const rows = lines.map((line, idx) => {
+    const lineNum = startNum + idx;
+    return `<div class="code-line"><span class="line-no">${lineNum}</span><span class="line-content">${escapeHtml(line)}</span></div>`;
+  }).join('');
+  return `<div class="code-frame"><div class="code-lines">${rows}</div></div>`;
+}
+
 function findingCard(finding) {
   const evidence = finding.evidence.map((item) => {
-    const lines = item.lineEnd && item.lineEnd !== item.lineStart ? `${item.lineStart}-${item.lineEnd}` : item.lineStart;
-    const excerpt = 'excerpt' in item ? `<pre><code>${escapeHtml(item.excerpt)}</code></pre>` : '';
-    return `<div class="evidence">
-      <div class="evidence-head"><code>${escapeHtml(item.file)}</code>${badge(`line ${lines}`)}</div>
-      <div class="evidence-body"><p>${escapeHtml(item.explanation)}</p>${excerpt}</div>
+    const lines = item.lineEnd && item.lineEnd !== item.lineStart ? `${item.lineStart}–${item.lineEnd}` : item.lineStart;
+    const excerpt = 'excerpt' in item && item.excerpt ? formatExcerptWithGutters(item.excerpt, item.lineStart) : '';
+    return `<div class="evidence-box">
+      <div class="evidence-header">
+        <svg class="file-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M3.75 1.5a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h8.5a.25.25 0 0 0 .25-.25V6H9.75A1.75 1.75 0 0 1 8 4.25V1.5H3.75Zm5.75.56v2.19c0 .138.112.25.25.25h2.19L9.5 2.06ZM2 1.75C2 .784 2.784 0 3.75 0h5.586a1.75 1.75 0 0 1 1.237.513l3.414 3.414c.328.328.513.773.513 1.237v9.086A1.75 1.75 0 0 1 12.75 16h-9A1.75 1.75 0 0 1 2 14.25V1.75Z"/></svg>
+        <code class="evidence-file">${escapeHtml(item.file)}</code>
+        <span class="evidence-lines">L${escapeHtml(lines)}</span>
+      </div>
+      <div class="evidence-content">
+        <p class="evidence-desc">${escapeHtml(item.explanation)}</p>
+        ${excerpt}
+      </div>
     </div>`;
   }).join('');
-  return `<details class="finding severity-${finding.severity}" data-finding data-severity="${finding.severity}" data-risk="${finding.riskTier}" data-effort="${finding.effort}" data-status="${finding.status}" data-haystack="${escapeHtml(searchIndex(finding))}">
-    <summary>
-      <div class="summary-main">
-        <div class="finding-id">${escapeHtml(finding.id)}</div>
-        <h3 class="finding-title">${escapeHtml(finding.title)}</h3>
-        <div class="badges">
-          ${badge(finding.severity, `severity-${finding.severity}`)}
-          ${badge(`risk ${finding.riskTier}`, `risk-${finding.riskTier}`)}
-          ${badge(`effort ${finding.effort}`)}
-          ${badge(`${finding.confidence} confidence`)}
-          ${badge(finding.provenance.replaceAll('-', ' '))}
-        </div>
+
+  return `<details class="finding-card severity-${finding.severity}" data-finding data-severity="${finding.severity}" data-risk="${finding.riskTier}" data-effort="${finding.effort}" data-status="${finding.status}" data-haystack="${escapeHtml(searchIndex(finding))}">
+    <summary class="finding-summary">
+      <div class="finding-badge-rail">
+        <span class="severity-badge ${finding.severity}">${escapeHtml(finding.severity)}</span>
       </div>
-      <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+      <div class="finding-header-main">
+        <div class="finding-meta-bar">
+          <span class="finding-key">${escapeHtml(finding.id)}</span>
+          <span class="meta-dot">·</span>
+          <span class="meta-tag"><b>Risk</b> ${escapeHtml(finding.riskTier)}</span>
+          <span class="meta-dot">·</span>
+          <span class="meta-tag"><b>Effort</b> ${escapeHtml(finding.effort)}</span>
+          <span class="meta-dot">·</span>
+          <span class="meta-tag">${escapeHtml(finding.confidence)} confidence</span>
+          <span class="meta-dot">·</span>
+          <span class="meta-tag">${escapeHtml(finding.provenance.replaceAll('-', ' '))}</span>
+        </div>
+        <h3 class="finding-title-text">${escapeHtml(finding.title)}</h3>
+      </div>
+      <div class="finding-expand-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+      </div>
     </summary>
-    <div class="finding-detail">
-      ${detail('Impact', `<p>${escapeHtml(finding.impact)}</p>`)}
-      <div class="detail-row"><div class="detail-grid">
-        <div><span class="label">Affected modules</span>${list(finding.affectedModules)}</div>
-        <div><span class="label">Affected files</span>${list(finding.affectedFiles, 'file-list')}</div>
-        <div><span class="label">Relevant changes</span>${list(finding.relevantChanges)}</div>
-      </div></div>
-      ${detail('Evidence', evidence)}
-      ${detail('Basis', `<p><strong>${escapeHtml(finding.basis.type.replaceAll('-', ' '))}:</strong> ${escapeHtml(finding.basis.reference)}</p><p class="muted">${escapeHtml(finding.basis.rationale)}</p>`)}
-      ${detail('Recommended remediation', `<p>${escapeHtml(finding.remediation)}</p>`)}
-      ${detail('Verification', `<p>${escapeHtml(finding.verification)}</p>`)}
+    <div class="finding-expanded-content">
+      <div class="finding-impact-callout">
+        <div class="callout-label">Impact & Consequences</div>
+        <p>${escapeHtml(finding.impact)}</p>
+      </div>
+      <div class="finding-two-col">
+        <div class="finding-primary-col">
+          <div class="finding-block">
+            <h4 class="block-title">Evidence & Code</h4>
+            ${evidence}
+          </div>
+          <div class="action-card remediation-card">
+            <div class="action-card-header">
+              <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Zm7-3.25v4.5a.75.75 0 0 1-1.5 0v-4.5a.75.75 0 0 1 1.5 0ZM8 11.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z"/></svg>
+              <span>Recommended Remediation</span>
+            </div>
+            <p>${escapeHtml(finding.remediation)}</p>
+          </div>
+          <div class="action-card verification-card">
+            <div class="action-card-header">
+              <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"/></svg>
+              <span>Verification Steps</span>
+            </div>
+            <p>${escapeHtml(finding.verification)}</p>
+          </div>
+        </div>
+        <aside class="finding-sidebar-col">
+          <div class="sidebar-section">
+            <h4 class="sidebar-title">Affected Modules</h4>
+            ${list(finding.affectedModules, 'tag-list')}
+          </div>
+          <div class="sidebar-section">
+            <h4 class="sidebar-title">Affected Files</h4>
+            ${list(finding.affectedFiles, 'file-tree-list')}
+          </div>
+          <div class="sidebar-section">
+            <h4 class="sidebar-title">Relevant Changes</h4>
+            ${list(finding.relevantChanges, 'change-list')}
+          </div>
+          <div class="sidebar-section">
+            <h4 class="sidebar-title">Rule & Basis</h4>
+            <div class="basis-box">
+              <span class="basis-type-badge">${escapeHtml(finding.basis.type.replaceAll('-', ' '))}</span>
+              <div class="basis-ref">${escapeHtml(finding.basis.reference)}</div>
+              <p class="basis-desc">${escapeHtml(finding.basis.rationale)}</p>
+            </div>
+          </div>
+        </aside>
+      </div>
     </div>
   </details>`;
 }
@@ -359,30 +416,30 @@ export function renderReviewReport(report, {
   const styleHash = createHash('sha256').update(normalizedCss).digest('base64');
   const scriptHash = createHash('sha256').update(normalizedJavaScript).digest('base64');
 
-  const changes = sectionCards(report.changes, (change) => `<article class="tile">
-    <div class="badges">${badge(change.kind)}</div>
-    <h3>${escapeHtml(change.summary)}</h3>
-    <div class="detail-grid" style="margin-top:12px">
-      <div><span class="label">Modules</span>${list(change.modules)}</div>
-      <div><span class="label">Files</span>${list(change.files, 'file-list')}</div>
+  const changes = sectionCards(report.changes, (change) => `<article class="change-card-item">
+    <div class="change-badge ${change.kind}">${escapeHtml(change.kind)}</div>
+    <h3 class="change-summary">${escapeHtml(change.summary)}</h3>
+    <div class="change-details-grid">
+      <div><span class="meta-label">Modules</span>${list(change.modules, 'tag-list')}</div>
+      <div><span class="meta-label">Files</span>${list(change.files, 'file-tree-list')}</div>
     </div>
   </article>`, 'No direct or affected changes were recorded.');
 
-  const validations = report.validations.length ? `<div class="table-wrap"><table>
-    <thead><tr><th>Check</th><th>Status</th><th>Command</th><th>Result</th></tr></thead>
+  const validations = report.validations.length ? `<div class="table-container"><table>
+    <thead><tr><th>Check Name</th><th>Status</th><th>Command</th><th>Outcome</th></tr></thead>
     <tbody>${report.validations.map((validation) => `<tr>
-      <td><strong>${escapeHtml(validation.name)}</strong></td>
-      <td><span class="status status-${validation.status}">${escapeHtml(validation.status.replaceAll('-', ' '))}</span></td>
-      <td>${'command' in validation ? `<code>${escapeHtml(validation.command)}</code>` : '<span class="muted">—</span>'}</td>
-      <td>${escapeHtml(validation.summary)}${validation.details ? `<span class="muted">${escapeHtml(validation.details)}</span>` : ''}</td>
+      <td class="check-name-cell"><strong>${escapeHtml(validation.name)}</strong></td>
+      <td><span class="status-indicator status-${validation.status}">${escapeHtml(validation.status.replaceAll('-', ' '))}</span></td>
+      <td>${'command' in validation ? `<code class="command-tag">${escapeHtml(validation.command)}</code>` : '<span class="muted-dash">—</span>'}</td>
+      <td class="outcome-cell">${escapeHtml(validation.summary)}${validation.details ? `<div class="outcome-details">${escapeHtml(validation.details)}</div>` : ''}</td>
     </tr>`).join('')}</tbody>
   </table></div>` : '<p class="notice">No validation commands were recorded. This must not be interpreted as a pass.</p>';
 
-  const passedChecks = sectionCards(report.passedChecks, (check) => `<article class="tile"><h3>${escapeHtml(check.title)}</h3><p>${escapeHtml(check.evidence)}</p></article>`, 'No passed checks were recorded.');
-  const preExisting = sectionCards(report.preExistingIssues, (issue) => `<article class="tile"><div class="badges">${badge(issue.severity, `severity-${issue.severity}`)}</div><h3 style="margin-top:10px">${escapeHtml(issue.title)}</h3><p>${escapeHtml(issue.summary)}</p><div style="margin-top:10px"><span class="label">Files</span>${list(issue.files, 'file-list')}</div></article>`, 'No affected pre-existing issues were recorded.');
-  const unverified = sectionCards(report.unverifiedAreas, (area) => `<article class="tile"><h3>${escapeHtml(area.title)}</h3><p>${escapeHtml(area.reason)}</p>${area.files.length ? `<div style="margin-top:10px"><span class="label">Files</span>${list(area.files, 'file-list')}</div>` : '<p class="muted" style="margin-top:8px">No specific files identified.</p>'}</article>`, 'No unverified areas were recorded.');
+  const passedChecks = sectionCards(report.passedChecks, (check) => `<article class="pass-card"><div class="pass-icon"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"/></svg></div><div><h3>${escapeHtml(check.title)}</h3><p>${escapeHtml(check.evidence)}</p></div></article>`, 'No passed checks were recorded.');
+  const preExisting = sectionCards(report.preExistingIssues, (issue) => `<article class="context-card"><div class="context-badge-line"><span class="severity-badge-sm ${issue.severity}">${escapeHtml(issue.severity)}</span></div><h3>${escapeHtml(issue.title)}</h3><p>${escapeHtml(issue.summary)}</p><div class="context-files-block"><span class="meta-label">Files</span>${list(issue.files, 'file-tree-list')}</div></article>`, 'No affected pre-existing issues were recorded.');
+  const unverified = sectionCards(report.unverifiedAreas, (area) => `<article class="context-card"><h3>${escapeHtml(area.title)}</h3><p>${escapeHtml(area.reason)}</p>${area.files.length ? `<div class="context-files-block"><span class="meta-label">Files</span>${list(area.files, 'file-tree-list')}</div>` : '<p class="context-empty-note">No specific files identified.</p>'}</article>`, 'No unverified areas were recorded.');
   const limitations = report.metadata.limitations.length
-    ? `<div class="card">${list(report.metadata.limitations)}</div>`
+    ? `<div class="limitations-card">${list(report.metadata.limitations, 'bullet-list')}</div>`
     : '<p class="empty">No review limitations were recorded.</p>';
   const confirmedEmpty = report.findings.length
     ? '<p class="empty">No confirmed findings were recorded. Review items that need verification before deciding release readiness.</p>'
@@ -395,7 +452,7 @@ export function renderReviewReport(report, {
     ['Target', report.metadata.target],
     ['Generated', report.metadata.generatedAt],
     ['Rules', report.metadata.rulesVersion],
-  ].map(([label, value]) => `<span class="chip"><span>${label}</span><code>${escapeHtml(value)}</code></span>`).join('');
+  ].map(([label, value]) => `<div class="hero-meta-pill"><span class="pill-label">${label}</span><code class="pill-value">${escapeHtml(value)}</code></div>`).join('');
 
   return `<!doctype html>
 <html lang="en" data-theme="light">
@@ -403,82 +460,99 @@ export function renderReviewReport(report, {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-${scriptHash}'; style-src 'sha256-${styleHash}'; img-src data:; font-src data:; object-src 'none'; base-uri 'none'; form-action 'none'; connect-src 'none'">
-  <title>${escapeHtml(report.metadata.feature)} · Flutter Rules review</title>
+  <title>${escapeHtml(report.metadata.feature)} · Flutter Rules Review</title>
   <style>${normalizedCss}</style>
 </head>
 <body>
   <div class="topbar">
     <div class="shell topbar-inner">
-      <div class="brand"><span class="brand-dot"></span>Flutter Rules <span class="brand-sub">· Feature review</span></div>
-      <nav class="jump" aria-label="Report sections">
+      <div class="brand">
+        <div class="brand-badge">
+          <svg viewBox="0 0 16 16" fill="currentColor"><path d="M7.47 10.78a.75.75 0 0 0 1.06 0l3.75-3.75a.75.75 0 0 0-1.06-1.06L8.75 8.44V1.75a.75.75 0 0 0-1.5 0v6.69L4.78 5.97a.75.75 0 0 0-1.06 1.06l3.75 3.75ZM3.75 13a.75.75 0 0 0 0 1.5h8.5a.75.75 0 0 0 0-1.5h-8.5Z"/></svg>
+        </div>
+        <span class="brand-title">Flutter Rules</span>
+        <span class="brand-divider">/</span>
+        <span class="brand-sub">Feature Review</span>
+      </div>
+      <nav class="jump-nav" aria-label="Report sections">
         <a href="#summary">Summary</a>
+        <a href="#scope">Scope</a>
         <a href="#change-impact">Changes</a>
         <a href="#findings">Findings</a>
         <a href="#validation">Validation</a>
         <a href="#context">Context</a>
       </nav>
       <button type="button" class="theme-toggle" data-theme-toggle aria-pressed="false" aria-label="Switch to dark theme">
-        <svg class="icon-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
-        <svg class="icon-dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
-        <span>Theme</span>
+        <svg class="icon-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        <svg class="icon-dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        <span data-theme-label>Theme</span>
       </button>
     </div>
   </div>
 
-  <header class="shell hero">
-    <div class="eyebrow">Implemented feature review</div>
-    <h1>${escapeHtml(report.metadata.feature)}</h1>
-    <p class="lede">${escapeHtml(report.summary.rationale)}</p>
-    <div class="hero-meta">${metaChips}</div>
+  <header class="shell hero-header">
+    <div class="header-badge-row">
+      <span class="status-kicker">Automated Code Review Report</span>
+    </div>
+    <h1 class="hero-title">${escapeHtml(report.metadata.feature)}</h1>
+    <p class="hero-rationale">${escapeHtml(report.summary.rationale)}</p>
+    <div class="hero-meta-grid">${metaChips}</div>
   </header>
 
   <main class="shell">
-    ${section('summary', 'Executive summary', 'Counts are computed from the recorded findings.', `<div class="card verdict ${report.summary.releaseRecommendation}">
-      <div class="verdict-badge">
-        <span class="label">Release recommendation</span>
-        <strong>${escapeHtml(report.summary.releaseRecommendation.replaceAll('-', ' '))}</strong>
-        <p class="muted">${confirmed.length} confirmed · ${needsVerification.length} need verification</p>
+    ${section('summary', 'Executive Summary', 'Computed breakdown of review findings and release recommendation.', `<div class="verdict-banner ${report.summary.releaseRecommendation}">
+      <div class="verdict-main">
+        <div class="verdict-pretitle">Release Status</div>
+        <div class="verdict-title">${escapeHtml(report.summary.releaseRecommendation.replaceAll('-', ' '))}</div>
+        <p class="verdict-sub">${confirmed.length} confirmed issue${confirmed.length === 1 ? '' : 's'} · ${needsVerification.length} requiring verification</p>
       </div>
-      <div class="stat-grid">
-        ${SEVERITIES.map((severity) => `<div class="stat ${severity}"><span class="stat-value">${counts[severity]}</span><span class="stat-label">${severity}</span></div>`).join('')}
-        <div class="stat"><span class="stat-value">${report.metadata.scope.length}</span><span class="stat-label">Files in scope</span></div>
-        <div class="stat"><span class="stat-value">${report.validations.filter((validation) => validation.status === 'passed').length}/${report.validations.length}</span><span class="stat-label">Checks passed</span></div>
+      <div class="metrics-grid">
+        ${SEVERITIES.map((severity) => `<div class="metric-card ${severity}"><div class="metric-num">${counts[severity]}</div><div class="metric-label">${severity}</div></div>`).join('')}
+        <div class="metric-card scope-metric"><div class="metric-num">${report.metadata.scope.length}</div><div class="metric-label">Files Checked</div></div>
+        <div class="metric-card test-metric"><div class="metric-num">${report.validations.filter((v) => v.status === 'passed').length}/${report.validations.length}</div><div class="metric-label">Checks Passed</div></div>
       </div>
     </div>`)}
 
-    ${section('scope', 'Scope', 'Only these files and their affected surfaces were reviewed.', `<div class="card"><span class="label">Reviewed paths</span>${list(report.metadata.scope, 'file-list')}</div>`, report.metadata.scope.length)}
+    ${section('scope', 'Review Scope', 'Directly changed files and their immediate dependency radius.', `<div class="scope-card"><div class="scope-header">Target Files (${report.metadata.scope.length})</div>${list(report.metadata.scope, 'file-tree-list')}</div>`, report.metadata.scope.length)}
 
-    ${section('change-impact', 'Change impact', null, changes, report.changes.length)}
+    ${section('change-impact', 'Change Impact', 'Surface area and architectural layer modifications.', changes, report.changes.length)}
 
-    ${section('findings', 'Findings', 'Expand a finding for evidence, remediation, and verification.', `${report.findings.length ? `<div class="filters" role="search" aria-label="Filter findings">
-        <input type="search" data-filter="search" aria-label="Search findings" placeholder="Search titles, modules, files, evidence">
-        <select data-filter="severity" aria-label="Filter by severity"><option value="">All severities</option>${optionList(SEVERITIES)}</select>
-        <select data-filter="risk" aria-label="Filter by risk tier"><option value="">All risk tiers</option>${optionList(RISKS)}</select>
-        <select data-filter="effort" aria-label="Filter by effort"><option value="">All efforts</option>${optionList(EFFORTS)}</select>
-        <select data-filter="status" aria-label="Filter by status"><option value="">All statuses</option>${optionList(FINDING_STATUSES)}</select>
+    ${section('findings', 'Findings', 'Review, analyze evidence, and determine follow-up actions.', `${report.findings.length ? `<div class="filters-panel" role="search" aria-label="Filter findings">
+        <div class="search-wrap">
+          <svg viewBox="0 0 16 16" fill="currentColor" class="search-icon"><path d="M10.68 11.74a6 6 0 0 1-7.922-8.982 6 6 0 0 1 8.982 7.922l3.04 3.04a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215ZM11.5 7a4.499 4.499 0 1 0-8.997 0A4.499 4.499 0 0 0 11.5 7Z"/></svg>
+          <input type="search" data-filter="search" placeholder="Search findings by title, file, module, or code...">
+        </div>
+        <div class="filter-controls">
+          <select data-filter="severity"><option value="">Severity: All</option>${optionList(SEVERITIES)}</select>
+          <select data-filter="risk"><option value="">Risk: All</option>${optionList(RISKS)}</select>
+          <select data-filter="effort"><option value="">Effort: All</option>${optionList(EFFORTS)}</select>
+          <select data-filter="status"><option value="">Status: All</option>${optionList(FINDING_STATUSES)}</select>
+        </div>
       </div>` : ''}
-      ${confirmed.length ? `<div data-finding-group><div class="group-heading">Confirmed · ${confirmed.length}</div>${confirmed.map(findingCard).join('')}</div>` : confirmedEmpty}
-      ${needsVerification.length ? `<div data-finding-group><div class="group-heading">Needs verification · ${needsVerification.length}</div>${needsVerification.map(findingCard).join('')}</div>` : ''}
+      ${confirmed.length ? `<div data-finding-group class="findings-group-wrapper"><div class="group-title-bar">Confirmed Issues <span class="group-count">(${confirmed.length})</span></div>${confirmed.map(findingCard).join('')}</div>` : confirmedEmpty}
+      ${needsVerification.length ? `<div data-finding-group class="findings-group-wrapper"><div class="group-title-bar">Needs Verification <span class="group-count">(${needsVerification.length})</span></div>${needsVerification.map(findingCard).join('')}</div>` : ''}
       <p class="empty" data-no-filter-results hidden>No findings match the selected filters.</p>`, report.findings.length)}
 
-    ${section('validation', 'Validation', 'Unexecuted checks are never reported as passing.', validations, report.validations.length)}
+    ${section('validation', 'Automated Validation', 'Results from analysis and project test suites.', validations, report.validations.length)}
 
-    <div id="context">
-      ${section('passed-checks', 'Passed checks', null, passedChecks, report.passedChecks.length)}
-      ${section('pre-existing', 'Affected pre-existing issues', 'Existing problems touched by this feature, listed separately from new findings.', preExisting, report.preExistingIssues.length)}
-      ${section('unverified', 'Unverified areas', 'These areas could not be validated during the review.', unverified, report.unverifiedAreas.length)}
-      ${section('limitations', 'Limitations', null, limitations, report.metadata.limitations.length)}
+    <div id="context" class="context-group">
+      ${section('passed-checks', 'Passed Checks', 'Areas verified with zero detected defects.', passedChecks, report.passedChecks.length)}
+      ${section('pre-existing', 'Pre-existing Issues', 'Existing codebase defects identified in the vicinity.', preExisting, report.preExistingIssues.length)}
+      ${section('unverified', 'Unverified Areas', 'Surfaces not exercised due to environment or tooling constraints.', unverified, report.unverifiedAreas.length)}
+      ${section('limitations', 'Review Limitations', null, limitations, report.metadata.limitations.length)}
     </div>
 
-    ${section('classification', 'Classification guide', 'Each dimension answers a different question.', `<div class="grid cols-3">
-      <div class="tile"><span class="label">Severity</span><p>Impact if the issue occurs: critical, high, medium, or low.</p></div>
-      <div class="tile"><span class="label">Risk tier</span><p>Release urgency: R1 blocker through R4 optional follow-up.</p></div>
-      <div class="tile"><span class="label">Confidence</span><p>Strength of the supporting evidence: high, medium, or low.</p></div>
-      <div class="tile"><span class="label">Effort</span><p>Relative remediation scope from XS to XL, not a time estimate.</p></div>
+    ${section('classification', 'Classification Reference', 'Standard definitions for risk and effort tiers.', `<div class="guide-grid">
+      <div class="guide-tile"><div class="guide-title">Severity</div><p>Impact severity: <b>Critical</b> (blocker/data-loss), <b>High</b> (major flaw), <b>Medium</b> (partial issue), <b>Low</b> (minor/polish).</p></div>
+      <div class="guide-tile"><div class="guide-title">Risk Tier</div><p>Release urgency: <b>R1</b> (Must fix now), <b>R2</b> (Fix before merge), <b>R3</b> (Next cycle), <b>R4</b> (Backlog/Optional).</p></div>
+      <div class="guide-tile"><div class="guide-title">Confidence</div><p>Confidence score: <b>High</b> (definitive proof), <b>Medium</b> (probable issue), <b>Low</b> (heuristic/speculative).</p></div>
+      <div class="guide-tile"><div class="guide-title">Effort</div><p>Estimated remediation scope: <b>XS</b> (&lt;10m), <b>S</b> (&lt;1h), <b>M</b> (1-4h), <b>L</b> (1-2d), <b>XL</b> (multi-day refactor).</p></div>
     </div>`)}
   </main>
 
-  <footer class="shell">Display-only report. Choose follow-up changes in chat; no remediation was performed by this review.</footer>
+  <footer class="shell report-footer">
+    <div class="footer-note">This is a display-only audit report. Changes are not applied automatically. Direct the agent in chat with specific fix instructions.</div>
+  </footer>
   <script>${normalizedJavaScript}</script>
 </body>
 </html>`;

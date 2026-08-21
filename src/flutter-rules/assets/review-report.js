@@ -1,6 +1,7 @@
 const THEME_KEY = 'flutter-rules-review-theme';
 const root = document.documentElement;
 const toggle = document.querySelector('[data-theme-toggle]');
+const themeLabel = document.querySelector('[data-theme-label]');
 
 function storedTheme() {
   try {
@@ -15,6 +16,7 @@ function applyTheme(theme, persist) {
   root.dataset.theme = theme;
   toggle?.setAttribute('aria-pressed', String(theme === 'dark'));
   toggle?.setAttribute('aria-label', theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+  if (themeLabel) themeLabel.textContent = theme === 'dark' ? 'Light' : 'Dark';
   if (!persist) return;
   try {
     localStorage.setItem(THEME_KEY, theme);
