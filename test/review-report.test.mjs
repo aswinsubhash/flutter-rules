@@ -174,7 +174,7 @@ test('report defaults to the light theme and offers an accessible toggle', () =>
   assert.match(html, /class="theme-toggle" data-theme-toggle aria-pressed="false"/);
   assert.match(html, /aria-label="Switch to dark theme"/);
   const css = readFileSync(resolve('src/flutter-rules/assets/review-report.css'), 'utf8');
-  assert.match(css, /^:root \{\n {2}color-scheme: light;/m);
+  assert.match(css, /^:root \{\r?\n {2}color-scheme: light;/m);
   assert.match(css, /\[data-theme="dark"\] \{/);
   assert.match(css, /\.status-indicator \{[\s\S]*white-space: nowrap;/);
   const javascript = readFileSync(resolve('src/flutter-rules/assets/review-report.js'), 'utf8');
