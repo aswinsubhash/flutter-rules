@@ -134,6 +134,38 @@ test('canonical skill is explicit-only, owned, versioned, and policy-safe', () =
   assert.equal(isOwnedSkillDirectory(join(repoRoot, 'src', 'flutter-rules')), true);
 });
 
+test('testing policy makes placement and bloc_test validation completion requirements', () => {
+  const skillRoot = join(repoRoot, 'src', 'flutter-rules');
+  const skill = readFileSync(join(skillRoot, 'SKILL.md'), 'utf8');
+  const testing = readFileSync(join(skillRoot, 'references', 'testing.md'), 'utf8');
+  const state = readFileSync(join(skillRoot, 'references', 'state.md'), 'utf8');
+
+  assert.equal(existsSync(join(skillRoot, 'scripts', 'validate-test-policy.mjs')), true);
+  assert.match(skill, /Never add feature-specific tests\s+directly under `test\/`\./);
+  assert.match(skill, /Test placement is a completion requirement/);
+  assert.match(testing, /Test placement is mandatory/);
+  assert.match(testing, /`test\/widget_test\.dart`/);
+  assert.match(testing, /`lib\/features\/<feature>\/<layer>\/<file>\.dart` \| `test\/features\/<feature>\/<layer>\/<file>_test\.dart`/);
+  assert.match(testing, /`lib\/core\/<layer>\/<file>\.dart` \| `test\/core\/<layer>\/<file>_test\.dart`/);
+  assert.match(testing, /Reserve root-level test files for genuinely app-wide smoke or integration/);
+  assert.match(testing, /move\s+that test into the required mirrored feature or core path/);
+  assert.match(testing, /verify that it\s+maps to its production path under `test\/`/);
+  assert.match(testing, /document the reason in the final response/);
+  assert.match(testing, /validate-test-policy\.mjs/);
+  assert.match(testing, /flutter-rules: allow-root-test/);
+  assert.match(state, /Use `bloc_test` by default for every new or modified Bloc\/Cubit transition/);
+  assert.match(state, /flutter pub add --dev bloc_test/);
+  assert.match(state, /`blocTest<BlocType, StateType>`/);
+  assert.match(state, /flutter-rules: allow-manual-bloc-test/);
+  assert.match(state, /Widget tests do not require `bloc_test` unless they directly assert/);
+  for (const path of [
+    'test/core/storage/user_session_test.dart',
+    'test/features/login/data/repositories/login_repository_impl_test.dart',
+    'test/features/login/presentation/bloc/login_bloc_test.dart',
+    'test/features/login/presentation/pages/login_page_test.dart',
+  ]) assert.match(testing, new RegExp(path.replaceAll('/', '\\/').replaceAll('.', '\\.')));
+});
+
 test('skill inspector rejects stale versions and duplicate policy sections', () => {
   const home = tempHome();
   const destination = copyCanonical(home);

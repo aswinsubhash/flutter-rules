@@ -169,11 +169,28 @@ return Scaffold(
   in `references/api.md` does not apply to state diagnostics.
 
 ## Testing Cubits and Blocs
-- Use the project's existing state-test and mocking tools. Use `bloc_test` for
-  state-emission assertions when it is already available or adding it is within
-  task scope.
-- Follow the project's test organization and naming style. Cover the initial
-  state and relevant success, loading, and failure transitions.
+- Use `bloc_test` by default for every new or modified Bloc/Cubit transition
+  test. When the task includes Bloc/Cubit test coverage and `bloc_test` is not
+  available, add it under `dev_dependencies` with
+  `flutter pub add --dev bloc_test`.
+- Use `blocTest<BlocType, StateType>` for loading, success, failure, validation,
+  and event-driven transitions.
+- Manual stream assertions are allowed only when `bloc_test` cannot express a
+  complex interaction clearly. Record a concrete reason in the test file:
+
+```dart
+// flutter-rules: allow-manual-bloc-test -- coordinates two dependent streams
+```
+
+- Repeat every manual-test exception and its reason in the final response.
+- Widget tests do not require `bloc_test` unless they directly assert Bloc/Cubit
+  transitions.
+- Before finalizing, run the automated policy validator from
+  `references/testing.md` and verify every Bloc/Cubit transition test uses
+  `bloc_test` or has an approved documented exception.
+- Follow the mandatory mirrored test placement in `references/testing.md` and
+  the project's compatible naming style. Cover the initial state and relevant
+  success, loading, and failure transitions.
 - The owning test must close Cubit or Bloc instances it creates manually,
   typically in `tearDown`. `blocTest` automatically closes the instance returned
   by its `build`; do not reuse that instance across tests or close it again.

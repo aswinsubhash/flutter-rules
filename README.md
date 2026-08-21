@@ -21,7 +21,8 @@ navigation, testing, and security. The skill applies only when you invoke it.
 - Flutter layout-error diagnosis and debugging workflow
 - API clients, models, repositories, and error handling
 - Navigation and routing
-- Testing, analysis, documentation, and code quality
+- Testing, mirrored test placement, Bloc/Cubit policy validation, analysis,
+  documentation, and code quality
 - Secure storage and SharedPreferences usage
 - Evidence-based implemented-feature review reports
 

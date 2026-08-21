@@ -40,6 +40,7 @@ const required = [
   'src/flutter-rules/references/ui.md',
   'src/flutter-rules/schemas/review-report.schema.json',
   'src/flutter-rules/scripts/render-review-report.mjs',
+  'src/flutter-rules/scripts/validate-test-policy.mjs',
   'src/flutter-rules/assets/review-report.css',
   'src/flutter-rules/assets/review-report.js',
   'README.md',
