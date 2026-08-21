@@ -102,7 +102,6 @@ export function validateReviewReport(report) {
     'findings',
     'validations',
     'passedChecks',
-    'preExistingIssues',
     'unverifiedAreas',
   ]);
   if (report.schemaVersion !== 1) fail('$.schemaVersion', 'must equal 1');
@@ -214,15 +213,6 @@ export function validateReviewReport(report) {
     objectAt(check, path, ['title', 'evidence']);
     stringAt(check.title, `${path}.title`);
     stringAt(check.evidence, `${path}.evidence`);
-  });
-
-  arrayAt(report.preExistingIssues, '$.preExistingIssues').forEach((issue, index) => {
-    const path = `$.preExistingIssues[${index}]`;
-    objectAt(issue, path, ['title', 'severity', 'summary', 'files']);
-    stringAt(issue.title, `${path}.title`);
-    enumAt(issue.severity, `${path}.severity`, SEVERITIES);
-    stringAt(issue.summary, `${path}.summary`);
-    pathListAt(issue.files, `${path}.files`, { required: true });
   });
 
   arrayAt(report.unverifiedAreas, '$.unverifiedAreas').forEach((area, index) => {
@@ -443,7 +433,6 @@ export function renderReviewReport(report, {
   </table></div>` : '<p class="notice">No validation commands were recorded. This must not be interpreted as a pass.</p>';
 
   const passedChecks = sectionCards(report.passedChecks, (check) => `<article class="pass-card"><div class="pass-icon"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"/></svg></div><div><h3>${escapeHtml(check.title)}</h3><p>${escapeHtml(check.evidence)}</p></div></article>`, 'No passed checks were recorded.');
-  const preExisting = sectionCards(report.preExistingIssues, (issue) => `<article class="context-card"><div class="context-badge-line"><span class="severity-badge-sm ${issue.severity}">${escapeHtml(issue.severity)}</span></div><h3>${escapeHtml(issue.title)}</h3><p>${escapeHtml(issue.summary)}</p><div class="context-files-block"><span class="meta-label">Files</span>${list(issue.files, 'file-tree-list')}</div></article>`, 'No affected pre-existing issues were recorded.');
   const unverified = sectionCards(report.unverifiedAreas, (area) => `<article class="context-card"><h3>${escapeHtml(area.title)}</h3><p>${escapeHtml(area.reason)}</p>${area.files.length ? `<div class="context-files-block"><span class="meta-label">Files</span>${list(area.files, 'file-tree-list')}</div>` : '<p class="context-empty-note">No specific files identified.</p>'}</article>`, 'No unverified areas were recorded.');
   const limitations = report.metadata.limitations.length
     ? `<div class="limitations-card">${list(report.metadata.limitations, 'bullet-list')}</div>`
@@ -538,7 +527,6 @@ export function renderReviewReport(report, {
 
     <div id="context" class="context-group">
       ${section('passed-checks', 'Passed Checks', 'Areas verified with zero detected defects.', passedChecks, report.passedChecks.length)}
-      ${section('pre-existing', 'Pre-existing Issues', 'Existing codebase defects identified in the vicinity.', preExisting, report.preExistingIssues.length)}
       ${section('unverified', 'Unverified Areas', 'Surfaces not exercised due to environment or tooling constraints.', unverified, report.unverifiedAreas.length)}
       ${section('limitations', 'Review Limitations', null, limitations, report.metadata.limitations.length)}
     </div>

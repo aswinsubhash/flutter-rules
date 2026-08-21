@@ -26,7 +26,7 @@ Inspect directly changed files and only the affected dependency, public API, rou
 - Read the implementation and acceptance criteria before judging it.
 - Read only Flutter Rules references relevant to the changed and affected surfaces.
 - Run appropriate project validation when available, including `flutter analyze` and focused tests. Record every check as `passed`, `failed`, `blocked`, or `not-run`; never imply an unexecuted check passed.
-- Separate confirmed findings, findings that need verification, passed checks, affected pre-existing issues, and unverified areas.
+- Separate confirmed findings, findings that need verification, passed checks, and unverified areas. Mark findings that predate the feature with `provenance: affected-pre-existing` when the current change materially exposes or affects them.
 - A confirmed finding requires exact project-relative file and line evidence. Mark an incomplete concern `needs-verification` instead of asserting it as a defect.
 - Redact tokens, credentials, personal data, and secret values from excerpts. A path and line range are sufficient when a safe excerpt cannot be included.
 - Report only actionable issues introduced by or materially exposed by the reviewed feature. Do not report personal style preferences as defects.

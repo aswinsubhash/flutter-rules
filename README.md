@@ -78,8 +78,8 @@ changed and affected surfaces, and records:
 - Release risk tier, confidence, and remediation effort
 - Affected modules, files, and relevant changes
 - Exact evidence, impact, remediation, and verification guidance
-- Validation results, passed checks, affected pre-existing issues, limitations,
-  and unverified areas
+- Validation results, passed checks, provenance for affected pre-existing findings,
+  limitations, and unverified areas
 
 Reports are stored in the reviewed project:
 

@@ -12,7 +12,6 @@
     "findings",
     "validations",
     "passedChecks",
-    "preExistingIssues",
     "unverifiedAreas"
   ],
   "properties": {
@@ -34,10 +33,6 @@
     "passedChecks": {
       "type": "array",
       "items": { "$ref": "#/$defs/passedCheck" }
-    },
-    "preExistingIssues": {
-      "type": "array",
-      "items": { "$ref": "#/$defs/contextIssue" }
     },
     "unverifiedAreas": {
       "type": "array",
@@ -209,17 +204,6 @@
       "properties": {
         "title": { "$ref": "#/$defs/nonEmptyString" },
         "evidence": { "$ref": "#/$defs/nonEmptyString" }
-      }
-    },
-    "contextIssue": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["title", "severity", "summary", "files"],
-      "properties": {
-        "title": { "$ref": "#/$defs/nonEmptyString" },
-        "severity": { "enum": ["critical", "high", "medium", "low"] },
-        "summary": { "$ref": "#/$defs/nonEmptyString" },
-        "files": { "$ref": "#/$defs/requiredPathList" }
       }
     },
     "unverifiedArea": {

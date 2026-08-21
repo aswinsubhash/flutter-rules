@@ -118,14 +118,6 @@ function reportFixture() {
         evidence: 'Domain remains independent of data and presentation.',
       },
     ],
-    preExistingIssues: [
-      {
-        title: 'Legacy session test is flaky',
-        severity: 'low',
-        summary: 'The unrelated timing assertion fails intermittently.',
-        files: ['test/core/session_test.dart'],
-      },
-    ],
     unverifiedAreas: [
       {
         title: 'Production identity provider',
@@ -151,7 +143,6 @@ test('complete report validates and renders every review section', () => {
     'Findings',
     'Automated Validation',
     'Passed Checks',
-    'Pre-existing Issues',
     'Unverified Areas',
     'Review Limitations',
     'Classification Reference',
