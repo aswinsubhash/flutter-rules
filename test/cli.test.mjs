@@ -139,10 +139,16 @@ test('testing policy makes placement and bloc_test validation completion require
   const skill = readFileSync(join(skillRoot, 'SKILL.md'), 'utf8');
   const testing = readFileSync(join(skillRoot, 'references', 'testing.md'), 'utf8');
   const state = readFileSync(join(skillRoot, 'references', 'state.md'), 'utf8');
+  const quality = readFileSync(join(skillRoot, 'references', 'quality.md'), 'utf8');
+  const workflow = skill.slice(skill.indexOf('## Workflow'), skill.indexOf('## Implemented feature reviews'));
 
   assert.equal(existsSync(join(skillRoot, 'scripts', 'validate-test-policy.mjs')), true);
-  assert.match(skill, /Never add feature-specific tests\s+directly under `test\/`\./);
-  assert.match(skill, /Test placement is a completion requirement/);
+  assert.equal([...workflow.matchAll(/^\d+\./gm)].length, 7);
+  assert.match(workflow, /When creating or modifying tests, read and follow every mandatory placement,/);
+  assert.match(workflow, /`references\/testing\.md`/);
+  assert.match(workflow, /mandatory analysis policy in `references\/quality\.md`/);
+  assert.doesNotMatch(workflow, /validate-test-policy\.mjs/);
+  assert.match(quality, /Run `flutter analyze` from the project root/);
   assert.match(testing, /Test placement is mandatory/);
   assert.match(testing, /`test\/widget_test\.dart`/);
   assert.match(testing, /`lib\/features\/<feature>\/<layer>\/<file>\.dart` \| `test\/features\/<feature>\/<layer>\/<file>_test\.dart`/);

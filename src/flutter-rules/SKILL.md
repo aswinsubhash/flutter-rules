@@ -16,30 +16,19 @@ mechanism.
 ## Workflow
 
 1. Inspect the existing implementation before changing code.
-2. Read only the reference files relevant to the task.
-3. Before creating or modifying tests, inspect the existing test organization
-   and read `references/testing.md`. A lone `test/widget_test.dart` or flat
-   legacy test does not establish a feature-specific test convention.
+2. Read only the reference files relevant to the task; use the References
+   section below to determine their scope.
+3. When creating or modifying tests, read and follow every mandatory placement,
+   Bloc/Cubit, exception, and automated validation requirement in
+   `references/testing.md`.
 4. Apply relevant rules only to code required by the current task. Do not
    modify unrelated code or retrofit untouched legacy code.
 5. Prefer existing project conventions and helpers over new abstractions.
-6. Do not move files, reorganize features or tests, add dependencies, or make
-   architecture-wide changes unless the task requires it or the user approves.
-   Moving an in-scope flat legacy test into its mandatory mirrored path is part
-   of the task and does not require separate approval.
-7. Place every new or modified feature and core test at the mandatory mirrored
-   path defined in `references/testing.md`. Never add feature-specific tests
-   directly under `test/`.
-8. Before finalizing, verify every new or modified test path maps to its
-   production path. Test placement is a completion requirement; document any
-   intentional exception in the final response.
-9. When Dart tests are created or modified, run
-   `node "<skill-root>/scripts/validate-test-policy.mjs" --project .` from the
-   Flutter project root. Fix every reported violation before completion and
-   disclose every documented exception in the final response.
-10. Run `flutter analyze` after implementation or refactoring. Fix issues
-    introduced by the current changes; report unrelated pre-existing issues
-    without modifying them unless explicitly requested.
+6. Do not move files, reorganize features, add dependencies, or make
+   architecture-wide changes unless required by the task or approved by the
+   user.
+7. Follow the mandatory analysis policy in `references/quality.md` after
+   implementation or refactoring.
 
 ## Implemented feature reviews
 
