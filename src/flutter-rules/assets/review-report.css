@@ -278,27 +278,6 @@ code, li, p, td { overflow-wrap: anywhere; word-break: break-word; }
   max-width: 800px;
 }
 
-.hero-meta-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 18px;
-}
-
-.hero-meta-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  font-size: 0.75rem;
-}
-
-.pill-label { color: var(--text-muted); font-weight: 500; }
-.pill-value { color: var(--text-primary); font-weight: 600; }
-
 /* ── Section Structure ───────────────────────────── */
 
 main { padding-bottom: 60px; }
@@ -1171,7 +1150,6 @@ tbody tr + tr td { border-top: 1px solid var(--border-subtle); }
 
 @media (max-width: 640px) {
   .hero-title { font-size: 1.25rem; }
-  .hero-meta-grid { flex-direction: column; }
   .metrics-grid { grid-template-columns: repeat(2, 1fr); grid-template-rows: auto; }
   .grid.cols-2, .grid.cols-3, .guide-grid { grid-template-columns: 1fr; }
   .change-details-grid { grid-template-columns: 1fr; }

@@ -452,15 +452,6 @@ export function renderReviewReport(report, {
     ? '<p class="empty">No confirmed findings were recorded. Review items that need verification before deciding release readiness.</p>'
     : '<p class="empty">No findings were recorded. Review validation and unverified areas before interpreting this as release readiness.</p>';
 
-  const metaChips = [
-    ['Project', report.metadata.project],
-    ['Branch', report.metadata.branch],
-    ['Baseline', report.metadata.baseline],
-    ['Target', report.metadata.target],
-    ['Generated', report.metadata.generatedAt],
-    ['Rules', report.metadata.rulesVersion],
-  ].map(([label, value]) => `<div class="hero-meta-pill"><span class="pill-label">${label}</span><code class="pill-value">${escapeHtml(value)}</code></div>`).join('');
-
   return `<!doctype html>
 <html lang="en" data-theme="light">
 <head>
@@ -503,7 +494,6 @@ export function renderReviewReport(report, {
     </div>
     <h1 class="hero-title">${escapeHtml(report.metadata.feature)}</h1>
     <p class="hero-rationale">${escapeHtml(report.summary.rationale)}</p>
-    <div class="hero-meta-grid">${metaChips}</div>
   </header>
 
   <main class="shell">
