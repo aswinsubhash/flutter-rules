@@ -1,0 +1,236 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/aswinsubhash/flutter-rules/schemas/review-report.schema.json",
+  "title": "Flutter Rules implemented feature review",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "metadata",
+    "summary",
+    "changes",
+    "findings",
+    "validations",
+    "passedChecks",
+    "preExistingIssues",
+    "unverifiedAreas"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "metadata": { "$ref": "#/$defs/metadata" },
+    "summary": { "$ref": "#/$defs/summary" },
+    "changes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/change" }
+    },
+    "findings": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/finding" }
+    },
+    "validations": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validation" }
+    },
+    "passedChecks": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/passedCheck" }
+    },
+    "preExistingIssues": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/contextIssue" }
+    },
+    "unverifiedAreas": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/unverifiedArea" }
+    }
+  },
+  "$defs": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "stringList": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/nonEmptyString" },
+      "uniqueItems": true
+    },
+    "requiredStringList": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/nonEmptyString" },
+      "uniqueItems": true
+    },
+    "projectPath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[^\\\\]+$"
+    },
+    "pathList": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/projectPath" },
+      "uniqueItems": true
+    },
+    "requiredPathList": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/projectPath" },
+      "uniqueItems": true
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "feature",
+        "project",
+        "generatedAt",
+        "rulesVersion",
+        "branch",
+        "baseline",
+        "target",
+        "scope",
+        "limitations"
+      ],
+      "properties": {
+        "feature": { "$ref": "#/$defs/nonEmptyString" },
+        "project": { "$ref": "#/$defs/nonEmptyString" },
+        "generatedAt": { "type": "string", "format": "date-time" },
+        "rulesVersion": { "$ref": "#/$defs/nonEmptyString" },
+        "branch": { "$ref": "#/$defs/nonEmptyString" },
+        "baseline": { "$ref": "#/$defs/nonEmptyString" },
+        "target": { "$ref": "#/$defs/nonEmptyString" },
+        "scope": { "$ref": "#/$defs/requiredPathList" },
+        "limitations": { "$ref": "#/$defs/stringList" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["releaseRecommendation", "rationale"],
+      "properties": {
+        "releaseRecommendation": {
+          "enum": ["block", "fix-before-merge", "merge-with-follow-up", "ready"]
+        },
+        "rationale": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    },
+    "change": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "summary", "modules", "files"],
+      "properties": {
+        "kind": { "enum": ["added", "modified", "deleted", "renamed", "affected"] },
+        "summary": { "$ref": "#/$defs/nonEmptyString" },
+        "modules": { "$ref": "#/$defs/requiredStringList" },
+        "files": { "$ref": "#/$defs/requiredPathList" }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "status",
+        "provenance",
+        "severity",
+        "riskTier",
+        "confidence",
+        "effort",
+        "affectedModules",
+        "affectedFiles",
+        "relevantChanges",
+        "impact",
+        "evidence",
+        "basis",
+        "remediation",
+        "verification"
+      ],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*$" },
+        "title": { "$ref": "#/$defs/nonEmptyString" },
+        "status": { "enum": ["confirmed", "needs-verification"] },
+        "provenance": { "enum": ["introduced", "affected-pre-existing", "unknown"] },
+        "severity": { "enum": ["critical", "high", "medium", "low"] },
+        "riskTier": { "enum": ["R1", "R2", "R3", "R4"] },
+        "confidence": { "enum": ["high", "medium", "low"] },
+        "effort": { "enum": ["XS", "S", "M", "L", "XL"] },
+        "affectedModules": { "$ref": "#/$defs/requiredStringList" },
+        "affectedFiles": { "$ref": "#/$defs/requiredPathList" },
+        "relevantChanges": { "$ref": "#/$defs/requiredStringList" },
+        "impact": { "$ref": "#/$defs/nonEmptyString" },
+        "evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/evidence" }
+        },
+        "basis": { "$ref": "#/$defs/basis" },
+        "remediation": { "$ref": "#/$defs/nonEmptyString" },
+        "verification": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["file", "lineStart", "explanation"],
+      "properties": {
+        "file": { "$ref": "#/$defs/projectPath" },
+        "lineStart": { "type": "integer", "minimum": 1 },
+        "lineEnd": { "type": "integer", "minimum": 1 },
+        "excerpt": { "type": "string" },
+        "explanation": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    },
+    "basis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "reference", "rationale"],
+      "properties": {
+        "type": { "enum": ["flutter-rule", "requirement", "correctness", "security", "testing"] },
+        "reference": { "$ref": "#/$defs/nonEmptyString" },
+        "rationale": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "status", "summary"],
+      "properties": {
+        "name": { "$ref": "#/$defs/nonEmptyString" },
+        "status": { "enum": ["passed", "failed", "blocked", "not-run"] },
+        "command": { "type": "string" },
+        "summary": { "$ref": "#/$defs/nonEmptyString" },
+        "details": { "type": "string" }
+      }
+    },
+    "passedCheck": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "evidence"],
+      "properties": {
+        "title": { "$ref": "#/$defs/nonEmptyString" },
+        "evidence": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    },
+    "contextIssue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "severity", "summary", "files"],
+      "properties": {
+        "title": { "$ref": "#/$defs/nonEmptyString" },
+        "severity": { "enum": ["critical", "high", "medium", "low"] },
+        "summary": { "$ref": "#/$defs/nonEmptyString" },
+        "files": { "$ref": "#/$defs/requiredPathList" }
+      }
+    },
+    "unverifiedArea": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "reason", "files"],
+      "properties": {
+        "title": { "$ref": "#/$defs/nonEmptyString" },
+        "reason": { "$ref": "#/$defs/nonEmptyString" },
+        "files": { "$ref": "#/$defs/pathList" }
+      }
+    }
+  }
+}

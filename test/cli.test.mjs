@@ -148,6 +148,31 @@ test('skill inspector rejects stale versions and duplicate policy sections', () 
   }
 });
 
+test('skill inspector rejects installations with missing required resources', () => {
+  const home = tempHome();
+  const destination = copyCanonical(home);
+  const resources = [
+    'references/architecture.md',
+    'references/review.md',
+    'schemas/review-report.schema.json',
+    'scripts/render-review-report.mjs',
+    'assets/review-report.css',
+    'assets/review-report.js',
+  ];
+  try {
+    for (const resource of resources) {
+      const installed = join(destination, resource);
+      rmSync(installed);
+      const inspection = inspectSkillDirectory(destination, packageVersion);
+      assert.equal(inspection.healthy, false, resource);
+      assert.match(inspection.issues.join('\n'), new RegExp(`Required skill resource is missing: ${resource.replaceAll('.', '\\.')}`));
+      cpSync(join(repoRoot, 'src', 'flutter-rules', resource), installed);
+    }
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
 test('Skills manager resolves pinned CLI and builds deterministic commands', () => {
   const runner = fakeRunner({
     responses: [{ code: 0, stdout: '', stderr: '' }],
@@ -831,6 +856,10 @@ test('real pinned Skills CLI lifecycle stays inside an isolated home', { timeout
     assert.equal(await runCli(['install'], options), 0);
     const canonical = join(home, '.agents', 'skills', 'flutter-rules');
     assert.equal(inspectSkillDirectory(canonical, packageVersion).healthy, true);
+    assert.equal(existsSync(join(canonical, 'schemas', 'review-report.schema.json')), true);
+    assert.equal(existsSync(join(canonical, 'scripts', 'render-review-report.mjs')), true);
+    assert.equal(existsSync(join(canonical, 'assets', 'review-report.css')), true);
+    assert.equal(existsSync(join(canonical, 'assets', 'review-report.js')), true);
     assert.equal(existsSync(join(repoRoot, '.agents')), false);
 
     const doctorOutput = [];

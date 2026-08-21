@@ -1,6 +1,6 @@
 ---
 name: flutter-rules
-description: Apply reusable Flutter and Dart engineering rules for clean architecture, Cubit/Bloc, UI, APIs, Dart 3, navigation, quality, and secure persistence. Use only when explicitly invoked.
+description: Apply reusable Flutter and Dart engineering rules for implementation and evidence-based feature reviews across clean architecture, Cubit/Bloc, UI, APIs, Dart 3, navigation, quality, and secure persistence. Use only when explicitly invoked.
 compatibility: Codex, Claude Code, Cursor, and Devin. Flutter and Dart tooling are required for validation commands.
 disable-model-invocation: true
 metadata:
@@ -26,6 +26,13 @@ mechanism.
    introduced by the current changes; report unrelated pre-existing issues
    without modifying them unless explicitly requested.
 
+## Implemented feature reviews
+
+When the user asks to review an implemented feature, follow
+`references/review.md`. Generate and open the required report for every such
+review. The review must not modify application code; wait for the user to
+choose any remediation after reading the report.
+
 ## References
 
 - `references/dart.md`: Effective Dart naming, types, style, imports, documentation, widgets, and performance.
@@ -39,3 +46,4 @@ mechanism.
 - `references/navigation.md`: tab navigation, scroll reset, and go_router standards.
 - `references/flutter-errors.md`: Flutter layout constraints, lifecycle errors, and debugging workflow.
 - `references/quality.md`: mandatory analysis, sensitive-storage verification, AI-code cleanup, README/ARCHITECTURE/`///` docs, and inline comment rules.
+- `references/review.md`: implemented-feature review scope, evidence, classification, report generation, and human approval boundary.

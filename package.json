@@ -12,6 +12,10 @@
     "src/flutter-rules/SKILL.md",
     "src/flutter-rules/agents/openai.yaml",
     "src/flutter-rules/references/*.md",
+    "src/flutter-rules/schemas/*.json",
+    "src/flutter-rules/scripts/*.mjs",
+    "src/flutter-rules/assets/*.css",
+    "src/flutter-rules/assets/*.js",
     "LICENSE",
     "README.md"
   ],

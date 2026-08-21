@@ -8,6 +8,8 @@ trap 'rm -rf -- "$temporary_root"' EXIT
 
 skill_path="$repo_root/src/flutter-rules/SKILL.md"
 policy_path="$repo_root/src/flutter-rules/agents/openai.yaml"
+review_schema="$repo_root/src/flutter-rules/schemas/review-report.schema.json"
+review_renderer="$repo_root/src/flutter-rules/scripts/render-review-report.mjs"
 skills_cli="$(cd "$repo_root" && node --input-type=module -e "import { resolveSkillsCliPath } from './lib/skills-manager.mjs'; process.stdout.write(resolveSkillsCliPath());")"
 
 NO_COLOR=1 node "$skills_cli" add "$repo_root" --list >"$temporary_root/skills-list.txt"
@@ -15,6 +17,8 @@ grep -q 'Found 1 skill' "$temporary_root/skills-list.txt"
 grep -q 'flutter-rules' "$temporary_root/skills-list.txt"
 grep -q '^disable-model-invocation: true$' "$skill_path"
 grep -q '^  allow_implicit_invocation: false$' "$policy_path"
+node -e 'JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8"))' "$review_schema"
+node --check "$review_renderer"
 
 standard_root="$temporary_root/standard"
 standard_skill="$standard_root/flutter-rules"

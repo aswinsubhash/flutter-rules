@@ -23,6 +23,7 @@ navigation, testing, and security. The skill applies only when you invoke it.
 - Navigation and routing
 - Testing, analysis, documentation, and code quality
 - Secure storage and SharedPreferences usage
+- Evidence-based implemented-feature review reports
 
 ## Install
 
@@ -66,6 +67,37 @@ $flutter-rules check whether this session storage is secure
 ```
 
 Start a new agent session after installation so the skill is discovered.
+
+## Feature review reports
+
+Every explicit request to review an implemented feature generates an offline,
+display-only report. Flutter Rules determines the relevant diff, reviews the
+changed and affected surfaces, and records:
+
+- Critical, high, medium, and low findings
+- Release risk tier, confidence, and remediation effort
+- Affected modules, files, and relevant changes
+- Exact evidence, impact, remediation, and verification guidance
+- Validation results, passed checks, affected pre-existing issues, limitations,
+  and unverified areas
+
+Reports are stored in the reviewed project:
+
+```text
+.flutter-rules/reviews/<YYYYMMDDTHHMMSSZ>-<feature>/
+  review.json
+  review.html
+```
+
+`review.json` is the structured audit source and `review.html` is a searchable,
+filterable view with all assets embedded. The skill attempts to open the HTML in
+the default browser and prints its absolute path when automatic opening is not
+available.
+
+A feature review does not modify application code or implement its findings.
+Choose the changes you want after reading the report, then give the agent that
+follow-up scope. If the reports directory is not already ignored, the agent must
+ask before adding it to `.gitignore`.
 
 ## Manage
 
