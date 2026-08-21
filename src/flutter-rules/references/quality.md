@@ -1,12 +1,14 @@
 # Code Quality Rules
 
-## 7) Mandatory Analysis (Flutter Analyze)
-- **Always** run `flutter analyze` after every new implementation or refactor.
-- Run:
-  `flutter analyze` or `flutter analyze lib/app lib/core lib/features`
-- Ensure **zero** analyzer issues before finalizing or notifying the user.
+## Mandatory Analysis (Flutter Analyze)
+- Run `flutter analyze` from the project root after every new implementation or
+  refactor. Use a documented project-specific target only when those paths
+  actually exist.
+- Ensure the current changes introduce zero analyzer issues. Fix issues caused
+  by those changes; report unrelated pre-existing issues without modifying them
+  unless explicitly requested.
 
-## 8) Sensitive storage verification
+## Sensitive storage verification
 - Add or update tests whenever session persistence changes.
 - Assert that tokens, credentials, user IDs, and other sensitive identifiers
   are absent from `SharedPreferences`.
@@ -17,21 +19,25 @@
 - Review diffs for plaintext secrets in logs, URLs, analytics, fixtures, or
   test output before finalizing.
 
-## 10) AI-generated code cleanup policy
+## AI-generated code cleanup policy
 - Never leave obvious AI artifacts (verbose boilerplate, duplicated helper layers, unnatural naming).
 - Prefer existing project style and patterns over generic generated patterns.
 - Before finalizing, simplify any generated code to the minimum clear implementation.
 - Remove placeholder/todo-generated blocks unless explicitly requested by product scope.
 
-## 11) Documentation & comments
+## Documentation & comments
 
-Document the project in three places only:
+At minimum, document the project in these core locations:
 
 | Layer | File / form | Purpose |
 |-------|-------------|---------|
 | Setup | `README.md` | What the app is, how to run/build (flavors), stack, locales, env/API |
 | Architecture | `ARCHITECTURE.md` | Folder structure, layer rules, Result/DI/routing — keep to ~1 page |
 | Code contracts | `///` on public APIs | What each public type/method means for callers |
+
+These recommended core locations are not exclusive. When the project needs them,
+add `CONTRIBUTING.md`, `SECURITY.md`, ADRs, migration guides, API docs,
+changelogs, runbooks, or other focused documentation.
 
 Do not put deep implementation detail in README. Do not put run/build instructions only in code comments.
 

@@ -134,6 +134,44 @@ test('canonical skill is explicit-only, owned, versioned, and policy-safe', () =
   assert.equal(isOwnedSkillDirectory(join(repoRoot, 'src', 'flutter-rules')), true);
 });
 
+test('testing policy makes placement and bloc_test validation completion requirements', () => {
+  const skillRoot = join(repoRoot, 'src', 'flutter-rules');
+  const skill = readFileSync(join(skillRoot, 'SKILL.md'), 'utf8');
+  const testing = readFileSync(join(skillRoot, 'references', 'testing.md'), 'utf8');
+  const state = readFileSync(join(skillRoot, 'references', 'state.md'), 'utf8');
+  const quality = readFileSync(join(skillRoot, 'references', 'quality.md'), 'utf8');
+  const workflow = skill.slice(skill.indexOf('## Workflow'), skill.indexOf('## Implemented feature reviews'));
+
+  assert.equal(existsSync(join(skillRoot, 'scripts', 'validate-test-policy.mjs')), true);
+  assert.equal([...workflow.matchAll(/^\d+\./gm)].length, 7);
+  assert.match(workflow, /When creating or modifying tests, read and follow every mandatory placement,/);
+  assert.match(workflow, /`references\/testing\.md`/);
+  assert.match(workflow, /mandatory analysis policy in `references\/quality\.md`/);
+  assert.doesNotMatch(workflow, /validate-test-policy\.mjs/);
+  assert.match(quality, /Run `flutter analyze` from the project root/);
+  assert.match(testing, /Test placement is mandatory/);
+  assert.match(testing, /`test\/widget_test\.dart`/);
+  assert.match(testing, /`lib\/features\/<feature>\/<layer>\/<file>\.dart` \| `test\/features\/<feature>\/<layer>\/<file>_test\.dart`/);
+  assert.match(testing, /`lib\/core\/<layer>\/<file>\.dart` \| `test\/core\/<layer>\/<file>_test\.dart`/);
+  assert.match(testing, /Reserve root-level test files for genuinely app-wide smoke or integration/);
+  assert.match(testing, /move\s+that test into the required mirrored feature or core path/);
+  assert.match(testing, /verify that it\s+maps to its production path under `test\/`/);
+  assert.match(testing, /document the reason in the final response/);
+  assert.match(testing, /validate-test-policy\.mjs/);
+  assert.match(testing, /flutter-rules: allow-root-test/);
+  assert.match(state, /Use `bloc_test` by default for every new or modified Bloc\/Cubit transition/);
+  assert.match(state, /flutter pub add --dev bloc_test/);
+  assert.match(state, /`blocTest<BlocType, StateType>`/);
+  assert.match(state, /flutter-rules: allow-manual-bloc-test/);
+  assert.match(state, /Widget tests do not require `bloc_test` unless they directly assert/);
+  for (const path of [
+    'test/core/storage/user_session_test.dart',
+    'test/features/login/data/repositories/login_repository_impl_test.dart',
+    'test/features/login/presentation/bloc/login_bloc_test.dart',
+    'test/features/login/presentation/pages/login_page_test.dart',
+  ]) assert.match(testing, new RegExp(path.replaceAll('/', '\\/').replaceAll('.', '\\.')));
+});
+
 test('skill inspector rejects stale versions and duplicate policy sections', () => {
   const home = tempHome();
   const destination = copyCanonical(home);
@@ -143,6 +181,31 @@ test('skill inspector rejects stale versions and duplicate policy sections', () 
     assert.match(inspectSkillDirectory(destination, packageVersion).issues.join(' '), /Installed version 1\.0\.0 does not match/);
     writeFileSync(join(destination, 'agents', 'openai.yaml'), 'policy:\n  allow_implicit_invocation: false\npolicy:\n  allow_implicit_invocation: true\n');
     assert.equal(inspectSkillDirectory(destination, '1.0.0').policyValid, false);
+  } finally {
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test('skill inspector rejects installations with missing required resources', () => {
+  const home = tempHome();
+  const destination = copyCanonical(home);
+  const resources = [
+    'references/architecture.md',
+    'references/review.md',
+    'schemas/review-report.schema.json',
+    'scripts/render-review-report.mjs',
+    'assets/review-report.css',
+    'assets/review-report.js',
+  ];
+  try {
+    for (const resource of resources) {
+      const installed = join(destination, resource);
+      rmSync(installed);
+      const inspection = inspectSkillDirectory(destination, packageVersion);
+      assert.equal(inspection.healthy, false, resource);
+      assert.match(inspection.issues.join('\n'), new RegExp(`Required skill resource is missing: ${resource.replaceAll('.', '\\.')}`));
+      cpSync(join(repoRoot, 'src', 'flutter-rules', resource), installed);
+    }
   } finally {
     rmSync(home, { recursive: true, force: true });
   }
@@ -831,6 +894,10 @@ test('real pinned Skills CLI lifecycle stays inside an isolated home', { timeout
     assert.equal(await runCli(['install'], options), 0);
     const canonical = join(home, '.agents', 'skills', 'flutter-rules');
     assert.equal(inspectSkillDirectory(canonical, packageVersion).healthy, true);
+    assert.equal(existsSync(join(canonical, 'schemas', 'review-report.schema.json')), true);
+    assert.equal(existsSync(join(canonical, 'scripts', 'render-review-report.mjs')), true);
+    assert.equal(existsSync(join(canonical, 'assets', 'review-report.css')), true);
+    assert.equal(existsSync(join(canonical, 'assets', 'review-report.js')), true);
     assert.equal(existsSync(join(repoRoot, '.agents')), false);
 
     const doctorOutput = [];

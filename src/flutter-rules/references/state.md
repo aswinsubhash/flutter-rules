@@ -1,13 +1,13 @@
 # State Management Rules
 
-## 14) Cubit vs BLoC Selection
+## Cubit vs BLoC Selection
 - Prefer `Cubit` for simple state transitions that do not need explicit events.
 - Use `Bloc` for complex flows, event traceability, or event transformers such
   as debounce and throttle.
 - Both are preferred over `setState` for business, validation, fetched, or
   persistent state. Keep `setState` for local UI-only state.
 
-## 15) State Modeling
+## State Modeling
 - Prefer one immutable `<Feature>State` with a status enum when states share
   data or previous data should remain available after a failure.
 - Use a sealed state hierarchy when states are mutually exclusive, carry
@@ -18,14 +18,15 @@
 - For the enum approach, use lifecycle values such as `initial`, `loading`,
   `success`, and `failure` and render with `switch (state.status)`.
 - For sealed states, handle every subtype with an exhaustive `switch (state)`.
-- Mark state classes `@immutable`, extend `Equatable`, and include every
-  relevant field in `props`.
+- Mark state classes `@immutable` and use the project's existing value-equality
+  approach. When the project uses `Equatable`, include every relevant field in
+  `props`.
 - Always emit a new state instance. Copy `List` and `Map` values before
   changing them; never mutate collections held by an emitted state.
 - Extract each status or state branch into a focused private builder so page
   `build` methods remain orchestration-focused.
 
-## 16) Events and Transitions
+## Events and Transitions
 - Name `Bloc` events in the past tense: `LoginSubmitted`,
   `ProfileRefreshRequested`, and `AuthenticationStarted` for the initial load.
 - Use `<Feature>Event` as the base event name and keep event-handler methods
@@ -40,21 +41,23 @@
 - When overriding storage in a `HydratedCubit`, pass it as the named `storage:`
   argument to the superclass.
 
-## 17) State Management Rule (BLoC Preference)
-- Prefer handling state updates through `Cubit` or `Bloc` for separation,
-  testability, and consistent UI updates.
-- Any state related to data fetching, validation logic, or persistent app state
-  must reside in a `Cubit` or `Bloc`.
+## Logic Isolation (Private Methods)
+- Presentation pages may isolate input collection and event dispatch in dedicated
+  private methods (for example, `_onLogin` or `_onSubmitted`). Business
+  validation and decisions must remain in the Cubit, Bloc, or domain layer.
+- Keep `build` and inline callbacks readable. Cheap, obvious derived values may
+  remain local to `build`; extract computations when they are complex,
+  expensive, reused, or obscure the widget structure.
+- When using `fl_chart`, extract chart configuration only when its size or
+  complexity harms readability. Group related configuration where useful; do
+  not require one private method for every chart data object.
+- Helpers should accept the explicit values they need. Pass `BuildContext` only
+  when the helper calls an API that requires it, rather than passing context or
+  an entire Bloc state by default.
+- These practices keep UI code readable without turning straightforward values
+  or declarative widget configuration into unnecessary indirection.
 
-## 18) Logic Isolation (Private Methods)
-- **Isolate Business Logic**: Presentation pages must isolate validation, complex logic, and event dispatching into dedicated private methods (e.g., `_onLogin`, `_onRegister`, `_onSubmitted`).
-- **Clean Build Methods**: Avoid writing multi-line logic blocks directly within the `build` method or inside inline callbacks like `onPressed` or `onTap`.
-- **No computed values in build**: Derived or calculated values (totals, intervals, max values, etc.) must be extracted to a private method (e.g., `_computeMetrics()`) and never computed inline inside `build`.
-- **Chart data objects**: When using fl_chart, each data object (`LineChartData`, `FlGridData`, `FlTitlesData`, `LineChartBarData`, etc.) must be constructed in its own private method. Never build them inline inside `build`.
-- **Method Signatures**: Private logic methods should typically accept `BuildContext` and the relevant BLoC `State` as parameters to ensure consistent and reliable access to the latest data and context.
-- This practice improves code readability, makes UI components purely orchestration-focused, and facilitates easier debugging of functional logic.
-
-## 19) Architecture Boundaries
+## Architecture Boundaries
 - Follow the feature structure `data/`, `di/`, `domain/`,
   `presentation/bloc/`, `presentation/pages/`, `presentation/widgets/`, and a
   public `<feature>.dart` barrel.
@@ -72,20 +75,29 @@
   listener to bridge side effects or inject a shared repository when state is
   genuinely shared.
 
-## 19a) Connectivity BLoC Baseline (Project Setup)
-- During basic project setup, add `internet_checker_plus` and create `lib/core/bloc/connectivity/` with `ConnectivityBloc`, `ConnectivityEvent`, and `ConnectivityState`.
-- Use `InternetCheckerPlus.onStatusChange()` and `InternetCheckerPlus.check()` with a short offline debounce (3 seconds) to avoid flickering offline UI.
-- `ConnectivityState` starts as connected (`isConnected = true`) and exposes only the current connection flag until product UI needs more state.
-- Provide `ConnectivityBloc` once at the app root above `MaterialApp.router`; do not create it inside pages.
-- Export the bloc from `core/core.dart` so app/root widgets can consume it consistently.
+## Connectivity BLoC Baseline (Project Setup)
+- Add connectivity monitoring only when the task requires it. Reuse the
+  project's existing checker, state manager, and folder conventions.
+- If adopting `internet_checker_plus` is explicitly in scope, use its status
+  stream and current-status check rather than adding a parallel abstraction.
+- Derive the initial connectivity state from a real current-status check, or
+  represent it explicitly as unknown until that check completes; do not assume
+  the device starts connected.
+- Debounce or otherwise transform connectivity events only when product needs
+  justify it, using a duration chosen for the expected UX and event behavior.
+- Scope the provider to the lifecycle of its consumers. Provide it above
+  `MaterialApp.router` only when connectivity is genuinely app-wide; otherwise
+  use the appropriate route or subtree scope.
+- Follow existing public-export conventions. Do not add a `core/core.dart`
+  barrel export unless consumers need it and that API change is in task scope.
 
-## 20) Route-level BLoC Provisioning
+## Route-level BLoC Provisioning
 - BLoCs/Cubits for a page/flow should be provided at the **route level** whenever that state belongs to the route lifecycle.
 - Prefer creating route-scoped BLoCs inside `GoRoute.pageBuilder` / router composition instead of instantiating them inside page widgets.
 - Pages should consume already-provided BLoCs and remain focused on presentation orchestration.
 - Only use more local provisioning when the state is intentionally scoped to a smaller extracted subtree and not the full route.
 
-## 21) Flutter Bloc Widgets and Scaffold Scope
+## Flutter Bloc Widgets and Scaffold Scope
 
 ### Providers
 
@@ -129,11 +141,14 @@ BlocSelector<MyCubit, MyState, String>(
 
 ### Scaffold placement
 
-- **`Scaffold` must be the outermost widget** in every page `build()` method.
-  Never wrap it with `BlocBuilder`, `BlocConsumer`, or `BlocListener`.
-- Place reactive builders and listeners inside `Scaffold.body`, scoped to the
-  smallest subtree that actually changes. This keeps static app bars, drawers,
-  and bottom navigation bars from rebuilding.
+- Scope reactive builders to the smallest subtree that changes. When only body
+  content is reactive, keep the `Scaffold` and its static app bar, drawer, or
+  navigation outside the builder.
+- `Scaffold` does not have to be the outermost page widget. Route- or
+  lifecycle-scoped providers and listeners, plus focus, restoration, and other
+  non-reactive wrappers, may wrap it when their responsibilities require that
+  scope. A reactive builder may also include the `Scaffold` when the scaffold
+  itself genuinely depends on that state.
 
 ```dart
 return Scaffold(
@@ -145,26 +160,48 @@ return Scaffold(
 );
 ```
 
-## 22) Bloc Diagnostics
+## Bloc Diagnostics
 - Override `onChange`, `onError`, or `onTransition` only when the additional
   diagnostics are useful for the current feature.
 - Configure a global `BlocObserver` once at the app root when global state or
-  error observation is required. Never log tokens, credentials, or sensitive
-  state fields.
+  error observation is required. Bloc diagnostics must not log tokens,
+  credentials, or sensitive state fields; the debug-only HTTP logging exception
+  in `references/api.md` does not apply to state diagnostics.
 
-## 23) Testing Cubits and Blocs
-- Use `bloc_test` for state-emission assertions and the project's standard
-  mocking library (such as `mocktail`) for repository dependencies.
-- Group tests by the class under test, name cases with `should`, and cover the
-  initial state plus success, loading, and failure transitions.
-- Close every Cubit or Bloc in `tearDown` and register fallback values for
-  custom mocktail types when required.
+## Testing Cubits and Blocs
+- Use `bloc_test` by default for every new or modified Bloc/Cubit transition
+  test. When the task includes Bloc/Cubit test coverage and `bloc_test` is not
+  available, add it under `dev_dependencies` with
+  `flutter pub add --dev bloc_test`.
+- Use `blocTest<BlocType, StateType>` for loading, success, failure, validation,
+  and event-driven transitions.
+- Manual stream assertions are allowed only when `bloc_test` cannot express a
+  complex interaction clearly. Record a concrete reason in the test file:
+
+```dart
+// flutter-rules: allow-manual-bloc-test -- coordinates two dependent streams
+```
+
+- Repeat every manual-test exception and its reason in the final response.
+- Widget tests do not require `bloc_test` unless they directly assert Bloc/Cubit
+  transitions.
+- Before finalizing, run the automated policy validator from
+  `references/testing.md` and verify every Bloc/Cubit transition test uses
+  `bloc_test` or has an approved documented exception.
+- Follow the mandatory mirrored test placement in `references/testing.md` and
+  the project's compatible naming style. Cover the initial state and relevant
+  success, loading, and failure transitions.
+- The owning test must close Cubit or Bloc instances it creates manually,
+  typically in `tearDown`. `blocTest` automatically closes the instance returned
+  by its `build`; do not reuse that instance across tests or close it again.
+- Register fallback values only when required by the project's selected mocking
+  tool (for example, a custom type passed to a Mocktail argument matcher).
 - Keep tests focused on observable state transitions and side-effect decisions;
   do not test private handler implementation details.
 
-## 24) Common State-Management Pitfalls
+## Common State-Management Pitfalls
 - Do not emit the same state instance twice; meaningful state changes require a
-  new instance and complete `Equatable.props`.
+  new instance and complete value-equality fields.
 - Do not mutate state lists or maps in place.
 - Do not call `context.watch` from callbacks; use `context.read` there.
 - Do not put repository calls, validation, or business decisions in widgets.

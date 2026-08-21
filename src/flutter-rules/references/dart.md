@@ -54,10 +54,11 @@ project conventions when they are more specific.
 ## Usage
 
 - Use collection literals and adjacent strings where they improve clarity.
-- Prefer collection `if`, `for`, spread (`...`), and null-aware (`?`)
-  elements for declarative lists such as widget children. Use imperative
-  `add`/`addAll` when the loop has meaningful side effects or complex control
-  flow.
+- Prefer collection `if`, `for`, and spread (`...`) elements for declarative
+  lists such as widget children. Use null-aware (`?`) elements only when the
+  package SDK lower bound is Dart 3.8 or newer; otherwise use collection `if`.
+  Use imperative `add`/`addAll` when the loop has meaningful side effects or
+  complex control flow.
 - Initialize fields at their declaration when possible.
 - Use initializing formals in constructors when possible.
 - Use `rethrow` when propagating a caught exception without changing it.
@@ -67,6 +68,8 @@ project conventions when they are more specific.
 - Catch known exception types explicitly at the boundary that can handle them;
   avoid broad `catch` blocks except as a final fallback. In this architecture,
   repositories map typed data exceptions into domain failures.
+- When the logger supports structured error fields, pass the error and stack
+  trace separately instead of interpolating them into the message.
 - Override `hashCode` whenever `==` is overridden and preserve equality's
   reflexive, symmetric, and transitive behavior.
 - Use `part of` directives only with string library names when a part file is

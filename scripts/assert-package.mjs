@@ -26,8 +26,23 @@ const required = [
   'lib/skills-manager.mjs',
   'src/flutter-rules/SKILL.md',
   'src/flutter-rules/agents/openai.yaml',
+  'src/flutter-rules/references/api.md',
+  'src/flutter-rules/references/architecture.md',
   'src/flutter-rules/references/dart.md',
+  'src/flutter-rules/references/dart3.md',
+  'src/flutter-rules/references/flutter-errors.md',
+  'src/flutter-rules/references/localization.md',
+  'src/flutter-rules/references/navigation.md',
+  'src/flutter-rules/references/quality.md',
+  'src/flutter-rules/references/review.md',
+  'src/flutter-rules/references/state.md',
   'src/flutter-rules/references/testing.md',
+  'src/flutter-rules/references/ui.md',
+  'src/flutter-rules/schemas/review-report.schema.json',
+  'src/flutter-rules/scripts/render-review-report.mjs',
+  'src/flutter-rules/scripts/validate-test-policy.mjs',
+  'src/flutter-rules/assets/review-report.css',
+  'src/flutter-rules/assets/review-report.js',
   'README.md',
   'LICENSE',
 ];
@@ -42,7 +57,11 @@ const allowed = (file) =>
   file.startsWith('lib/') ||
   file === 'src/flutter-rules/SKILL.md' ||
   file === 'src/flutter-rules/agents/openai.yaml' ||
-  /^src\/flutter-rules\/references\/[^/]+\.md$/.test(file);
+  /^src\/flutter-rules\/references\/[^/]+\.md$/.test(file) ||
+  /^src\/flutter-rules\/schemas\/[^/]+\.json$/.test(file) ||
+  /^src\/flutter-rules\/scripts\/[^/]+\.mjs$/.test(file) ||
+  /^src\/flutter-rules\/assets\/[^/]+\.(css|js)$/.test(file) ||
+  /^docs\/assets\/[^/]+\.png$/.test(file);
 
 for (const file of files) assert.ok(allowed(file), `Unexpected package file ${file}`);
 console.log(`Package contents verified (${files.length} files).`);
