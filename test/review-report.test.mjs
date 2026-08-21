@@ -164,8 +164,20 @@ test('complete report validates and renders every review section', () => {
   assert.match(html, /Display-only report/);
   assert.doesNotMatch(html, /<script\s+src=/);
   assert.doesNotMatch(html, /<link\s+[^>]*href=/);
-  assert.doesNotMatch(html, /localStorage|type="checkbox"/);
+  assert.doesNotMatch(html, /type="checkbox"|type="radio"|<form/);
   assert.ok(html.indexOf('AUTH-1') < html.indexOf('AUTH-2'));
+});
+
+test('report defaults to the light theme and offers an accessible toggle', () => {
+  const html = renderReviewReport(reportFixture());
+  assert.match(html, /<html lang="en" data-theme="light">/);
+  assert.match(html, /class="theme-toggle" data-theme-toggle aria-pressed="false"/);
+  assert.match(html, /aria-label="Switch to dark theme"/);
+  const css = readFileSync(resolve('src/flutter-rules/assets/review-report.css'), 'utf8');
+  assert.match(css, /^:root \{\n {2}color-scheme: light;/m);
+  assert.match(css, /\[data-theme="dark"\] \{/);
+  const javascript = readFileSync(resolve('src/flutter-rules/assets/review-report.js'), 'utf8');
+  assert.match(javascript, /storedTheme\(\) \?\? 'light'/);
 });
 
 test('renderer normalizes inlined asset line endings for stable CSP hashes', () => {
@@ -198,7 +210,7 @@ test('renderer computes counts and supports an honest empty-findings state', () 
   assert.match(html, /Review validation and unverified areas/);
   assert.doesNotMatch(html, /<select data-filter="severity"/);
   for (const severity of ['critical', 'high', 'medium', 'low']) {
-    assert.match(html, new RegExp(`<span class="label">${severity}<\\/span><span class="summary-value severity-${severity}">0`));
+    assert.match(html, new RegExp(`<div class="stat ${severity}"><span class="stat-value">0</span>`));
   }
 });
 
@@ -263,7 +275,8 @@ test('validator rejects unsafe paths, line ranges, and likely secrets', () => {
   assert.throws(() => validateReviewReport(lineRange), /greater than or equal to lineStart/);
 
   const secret = reportFixture();
-  secret.findings[0].evidence[0].excerpt = 'Authorization: Bearer abcdefghijklmnopqrstuvwxyz';
+  // Assembled at runtime so the repository never stores a credential-shaped literal.
+  secret.findings[0].evidence[0].excerpt = `Authorization: ${['Bea', 'rer'].join('')} ${'a1b2c3d4'.repeat(3)}`;
   assert.throws(() => validateReviewReport(secret), /appears to contain a secret/);
 
   const ordinaryText = reportFixture();
