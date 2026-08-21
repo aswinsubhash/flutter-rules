@@ -294,7 +294,7 @@ function findingCard(finding) {
     </div>`;
   }).join('');
 
-  return `<details class="finding-card severity-${finding.severity}" data-finding data-severity="${finding.severity}" data-risk="${finding.riskTier}" data-effort="${finding.effort}" data-status="${finding.status}" data-haystack="${escapeHtml(searchIndex(finding))}">
+  return `<details class="finding-card severity-${finding.severity}" id="${escapeHtml(finding.id)}" data-finding data-severity="${finding.severity}" data-risk="${finding.riskTier}" data-effort="${finding.effort}" data-status="${finding.status}" data-haystack="${escapeHtml(searchIndex(finding))}">
     <summary class="finding-summary">
       <div class="finding-badge-rail">
         <span class="severity-badge ${finding.severity}">${escapeHtml(finding.severity)}</span>
@@ -319,7 +319,14 @@ function findingCard(finding) {
     </summary>
     <div class="finding-expanded-content">
       <div class="finding-impact-callout">
-        <div class="callout-label">Impact & Consequences</div>
+        <div class="impact-callout-row">
+          <div class="callout-label">Impact & Consequences</div>
+          <button type="button" class="copy-fix-btn" data-copy-fix="${escapeHtml(`Fix ${finding.id}: ${finding.remediation}`)}">
+            <svg class="icon-copy" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"/><path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/></svg>
+            <svg class="icon-copied" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0Z"/></svg>
+            <span data-copy-label>Copy fix instruction</span>
+          </button>
+        </div>
         <p>${escapeHtml(finding.impact)}</p>
       </div>
       <div class="finding-two-col">
@@ -527,6 +534,10 @@ export function renderReviewReport(report, {
           <select data-filter="risk"><option value="">Risk: All</option>${optionList(RISKS)}</select>
           <select data-filter="effort"><option value="">Effort: All</option>${optionList(EFFORTS)}</select>
           <select data-filter="status"><option value="">Status: All</option>${optionList(FINDING_STATUSES)}</select>
+        </div>
+        <div class="toolbar-actions">
+          <button type="button" class="toolbar-btn" data-expand-all>Expand all</button>
+          <button type="button" class="toolbar-btn" data-collapse-all>Collapse all</button>
         </div>
       </div>` : ''}
       ${confirmed.length ? `<div data-finding-group class="findings-group-wrapper"><div class="group-title-bar">Confirmed Issues <span class="group-count">(${confirmed.length})</span></div>${confirmed.map(findingCard).join('')}</div>` : confirmedEmpty}

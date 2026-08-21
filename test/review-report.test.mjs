@@ -202,6 +202,37 @@ test('finding layout remains readable with long paths and dense content', () => 
   assert.doesNotMatch(css, /radial-gradient|linear-gradient|border-radius: 999px/);
 });
 
+test('findings expose action bridges: anchors, copy instructions, expand controls', () => {
+  const report = reportFixture();
+  const html = renderReviewReport(report);
+  assert.match(html, /<details class="finding-card[^"]*" id="AUTH-1"/);
+  assert.match(html, /<details class="finding-card[^"]*" id="AUTH-2"/);
+  assert.match(html, /data-copy-fix="Fix AUTH-1: Invalidate the session before returning the refresh failure\."/);
+  assert.match(html, /Copy fix instruction/);
+  assert.match(html, /data-expand-all/);
+  assert.match(html, /data-collapse-all/);
+  const javascript = readFileSync(resolve('src/flutter-rules/assets/review-report.js'), 'utf8');
+  assert.match(javascript, /navigator\.clipboard\.writeText/);
+  assert.match(javascript, /execCommand\('copy'\)/);
+  assert.match(javascript, /hasAttribute\('data-finding'\)/);
+});
+
+test('copy instruction escapes hostile remediation text', () => {
+  const report = reportFixture();
+  report.findings[0].remediation = 'Escape "quotes" & <tags> before rendering.';
+  const html = renderReviewReport(report);
+  assert.match(html, /data-copy-fix="Fix AUTH-1: Escape &quot;quotes&quot; &amp; &lt;tags&gt; before rendering\."/);
+  assert.doesNotMatch(html, /data-copy-fix="[^"]*<tags>/);
+});
+
+test('empty review renders no action toolbar', () => {
+  const report = reportFixture();
+  report.findings = [];
+  report.summary = { releaseRecommendation: 'ready', rationale: 'No confirmed defect was found.' };
+  const html = renderReviewReport(report);
+  assert.doesNotMatch(html, /<button[^>]*data-expand-all|<button[^>]*data-copy-fix/);
+});
+
 test('renderer normalizes inlined asset line endings for stable CSP hashes', () => {
   const html = renderReviewReport(reportFixture(), {
     css: 'body {\r\n  color: black;\r\n}',

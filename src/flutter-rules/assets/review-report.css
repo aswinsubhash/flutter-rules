@@ -478,6 +478,31 @@ main { padding-bottom: 60px; }
   border-color: var(--accent-primary);
 }
 
+.toolbar-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.toolbar-btn {
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg-page);
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.toolbar-btn:hover {
+  background: var(--bg-subtle);
+  border-color: var(--border-active);
+  color: var(--text-primary);
+}
+
 /* ── Finding Cards ───────────────────────────────── */
 
 .findings-group-wrapper { margin-top: 20px; }
@@ -612,14 +637,52 @@ main { padding-bottom: 60px; }
   border-bottom: 1px solid var(--border-subtle);
 }
 
+.impact-callout-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
 .callout-label {
   font-size: 0.6875rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--text-muted);
-  margin-bottom: 4px;
 }
+
+.copy-fix-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+.copy-fix-btn:hover {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+.copy-fix-btn svg { width: 13px; height: 13px; }
+.copy-fix-btn .icon-copied { display: none; }
+.copy-fix-btn.copied {
+  border-color: var(--sev-low-border);
+  background: var(--sev-low-bg);
+  color: var(--sev-low-text);
+}
+.copy-fix-btn.copied .icon-copy { display: none; }
+.copy-fix-btn.copied .icon-copied { display: block; }
 
 .finding-impact-callout p {
   color: var(--text-secondary);
@@ -1117,7 +1180,7 @@ tbody tr + tr td { border-top: 1px solid var(--border-subtle); }
 }
 
 @media print {
-  .topbar, .filters-panel, .finding-expand-icon { display: none !important; }
+  .topbar, .filters-panel, .finding-expand-icon, .copy-fix-btn { display: none !important; }
   body { background: #ffffff; color: #000000; }
   .finding-card { break-inside: avoid; border-color: #cbd5e1; }
   .finding-expanded-content { display: block !important; }

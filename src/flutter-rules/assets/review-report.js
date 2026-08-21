@@ -62,3 +62,54 @@ if (cards.length > 0 && controls.search) {
     control.addEventListener(name === 'search' ? 'input' : 'change', applyFilters);
   }
 }
+
+document.querySelector('[data-expand-all]')?.addEventListener('click', () => {
+  for (const card of cards) if (!card.hidden) card.open = true;
+});
+document.querySelector('[data-collapse-all]')?.addEventListener('click', () => {
+  for (const card of cards) card.open = false;
+});
+
+async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    const scratch = document.createElement('textarea');
+    scratch.value = text;
+    scratch.setAttribute('readonly', '');
+    scratch.style.position = 'fixed';
+    scratch.style.opacity = '0';
+    document.body.append(scratch);
+    scratch.select();
+    let copied = false;
+    try {
+      copied = document.execCommand('copy');
+    } catch {
+      copied = false;
+    }
+    scratch.remove();
+    return copied;
+  }
+}
+
+for (const button of document.querySelectorAll('[data-copy-fix]')) {
+  button.addEventListener('click', async () => {
+    const label = button.querySelector('[data-copy-label]');
+    const copied = await copyText(button.dataset.copyFix);
+    button.classList.toggle('copied', copied);
+    label.textContent = copied ? 'Copied' : 'Copy failed';
+    setTimeout(() => {
+      button.classList.remove('copied');
+      label.textContent = 'Copy fix instruction';
+    }, 1600);
+  });
+}
+
+const anchored = window.location.hash.length > 1
+  ? document.getElementById(decodeURIComponent(window.location.hash.slice(1)))
+  : null;
+if (anchored?.hasAttribute('data-finding')) {
+  anchored.open = true;
+  anchored.scrollIntoView({ block: 'start' });
+}
