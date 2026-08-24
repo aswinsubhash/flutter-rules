@@ -5,18 +5,28 @@ UI packages.
 
 ## App-owned localization
 
-- Do not introduce user-facing hardcoded strings directly in UI widgets.
+- Do not introduce app-owned user-facing hardcoded strings directly in UI
+  widgets.
 - Apps supporting more than one language should use Flutter gen-l10n with
   `flutter_localizations`, `intl`, `l10n.yaml`, and `.arb` files. Add every
-  user-facing string to every supported language and access it through
+  app-owned user-facing string to every supported language and access it through
   `context.l10n`.
-- Apps supporting one language do not need ARB setup. Keep user-facing text in
-  `lib/core/utils/app_strings.dart` and access it through `AppStrings`.
+- Apps supporting one language do not need ARB setup. Keep app-owned user-facing
+  text in `lib/core/utils/app_strings.dart` and access it through `AppStrings`.
 - Keep generated app localizations in the host app. App-specific feature
   folders may use `context.l10n`, but reusable packages must not import the
   host app's generated localization class.
 - Core and data exceptions or failures must not own localized UI copy.
-  Presentation maps typed failures or reason codes to localized messages.
+  Presentation localizes app-owned errors, including frontend validation and
+  app-defined messages derived from typed failures or reason codes.
+- Preserve safe, intentional server-provided user messages as provided when the
+  feature's existing API and product contract define them as user-facing. Do not
+  add backend-owned messages to ARB files or `AppStrings`, or replace them with
+  frontend-localized copy.
+- Use a localized app-owned fallback only when a server message is absent or
+  unsafe to display.
+- Do not display diagnostic internals such as stack traces, exception details,
+  or raw technical payloads.
 - Technical protocol literals such as API paths, MIME types, regex patterns,
   and route paths are not user-facing copy and may remain constants.
 

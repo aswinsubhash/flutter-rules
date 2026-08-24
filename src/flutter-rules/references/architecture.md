@@ -97,8 +97,12 @@ Repository implementations catch typed exceptions and map 1:1:
 | `SessionInvalidatedException` | `SessionExpiredFailure(e.message)` |
 
 Map feature-specific exceptions inside their owning repository. Presentation
-maps failure types or reason codes to localized user-facing copy; never display
-raw exception text.
+localizes app-owned errors and preserves safe, intentional server-provided user
+messages as provided when the feature's existing API and product contract define
+them as user-facing. Do not replace backend-owned messages with localized
+frontend copy. Use a localized app-owned fallback only when a server message is
+absent or unsafe, and never display diagnostic exception details, stack traces,
+or other internals.
 
 ## DI composition
 - Each feature owns a `di/<feature>_injection.dart` initializer.

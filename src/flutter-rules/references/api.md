@@ -38,7 +38,12 @@ abstract final class Env {
     HTTP logging in profile and release modes
   - supports `get`, `post`, `put`, `patch`, and `delete`
   - supports `CancelToken` and progress callbacks where Dio supports them
-  - extracts a safe response body `message` when present for server failures
+  - extracts and preserves a safe response body `message` as provided when the
+    feature's existing API and product contract define it as user-facing; do not
+    remap backend-owned messages to frontend localization, and do not assume the
+    field's presence alone makes its contents safe or user-facing
+  - uses existing status or reason codes, not user-facing message text, for
+    programmatic decisions
   - maps `connectionError` to `NetworkException`; inspect the underlying cause
     before classifying `unknown` because it is not necessarily a network error
   - preserves cancellation, timeout, certificate, transform, and bad-response
