@@ -27,7 +27,9 @@ Inspect directly changed files and only the affected dependency, public API, rou
 - Read only Flutter Rules references relevant to the changed and affected surfaces.
 - Run appropriate project validation when available, including `flutter analyze` and focused tests. Record every check as `passed`, `failed`, `blocked`, or `not-run`; never imply an unexecuted check passed.
 - Separate confirmed findings, findings that need verification, passed checks, and unverified areas. Mark findings that predate the feature with `provenance: affected-pre-existing` when the current change materially exposes or affects them.
-- A confirmed finding requires exact project-relative file and line evidence. Mark an incomplete concern `needs-verification` instead of asserting it as a defect.
+- A confirmed finding requires exact project-relative file and line evidence. When its impact depends on a specific entry path or runtime flow, also require acceptance criteria, product evidence, or reproducible runtime evidence. Mark an incomplete concern `needs-verification` instead of asserting it as a defect.
+- Distinguish technically addressable routes from product-supported flows. Route registration alone does not prove that direct or deep-link entry is supported.
+- If a finding depends on an unsupported or unverified entry path, classify it as `needs-verification` rather than `confirmed`.
 - Redact tokens, credentials, personal data, and secret values from excerpts. A path and line range are sufficient when a safe excerpt cannot be included.
 - Report only actionable issues introduced by or materially exposed by the reviewed feature. Do not report personal style preferences as defects.
 
@@ -43,6 +45,14 @@ Keep these dimensions independent:
 | Effort | `XS`, `S`, `M`, `L`, `XL` | Relative remediation scope, not a time estimate |
 
 Use `critical` only for outcomes such as exploitable security compromise, unrecoverable data loss, authentication bypass, or application-wide failure. Architecture, style, and documentation issues are not critical unless their demonstrated impact warrants it.
+
+Do not assign `medium` or `high` severity to hypothetical navigation behavior without acceptance criteria, product evidence, or reproducible runtime evidence.
+
+## Remediation guidance
+
+- Choose the least behavior-changing remediation by default when options differ in navigation history or animation.
+- Do not automatically choose `context.go` when a guarded `context.pop` preserves the existing UX and the current product flow guarantees a valid stack.
+- Before recommending a material navigation-history or animation change, explain the trade-off and require explicit user direction.
 
 ## Report data
 
