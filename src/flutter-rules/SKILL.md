@@ -5,7 +5,7 @@ compatibility: Codex, Claude Code, Cursor, and Devin. Flutter and Dart tooling a
 disable-model-invocation: true
 metadata:
   author: aswinsubhash
-  version: "2.0.4"
+  version: "2.0.3"
 ---
 
 # Flutter Rules
