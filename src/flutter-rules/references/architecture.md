@@ -56,6 +56,15 @@ bloc/cubit  -> folds Result -> emits presentation state
   `Result` contracts to presentation.
 - BLoCs/Cubits consume `Result.fold(...)` for success/failure handling.
 
+### Native plugin outcomes
+- When a native plugin can fail during a normal user action, the owning service
+  must inspect both its return values and documented `PlatformException` codes.
+  Map known, recoverable codes to typed outcomes in the existing error flow,
+  and keep cancellation distinct from other failures.
+- Preserve platform-specific behavior when interpreting those outcomes. Rethrow
+  unknown exceptions with their original stack trace rather than converting
+  them to a known failure or a generic fallback.
+
 ### File locations (mandatory)
 - `lib/core/error/result.dart` — `Result<T>` class.
 - `lib/core/error/failures.dart` — all `Failure` subclasses.

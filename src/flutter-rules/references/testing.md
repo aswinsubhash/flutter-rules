@@ -10,6 +10,16 @@
   databases, and repositories only when isolation is necessary.
 - Keep tests deterministic, focused, and easy to maintain.
 
+## Native plugin flows
+
+- When changing a native plugin wrapper, add focused tests for known, recoverable
+  exception codes, unknown-error propagation with the original stack trace,
+  cancellation, and errors from later stages of the flow that must not be
+  misclassified as plugin outcomes. Cover cancellation returned by the plugin
+  or thrown as an exception when either is part of its contract.
+- Where OS prompts or Settings behavior matters, verify the flow on relevant
+  devices or record that device check as unverified.
+
 ## Assertions
 
 - Prefer expressive matchers over brittle literal comparisons when they convey
