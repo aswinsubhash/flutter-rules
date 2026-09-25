@@ -81,6 +81,10 @@ Document **why / contract**, not what each line does.
 - Easy-to-break / dangerous behavior
 - Every `// ignore:` suppression must include a nearby explanation of why the
   lint is intentionally disabled; never suppress a rule silently.
+- Suppress `prefer_initializing_formals` only narrowly when applying it would
+  make a constructor parameter private or change/break external callers. Keep
+  the suppression on the smallest relevant scope and explain the public API or
+  encapsulation constraint next to it.
 
 **Do not** narrate self-explanatory code (“get the email”, “call the API”).
 **Do not** add decorative `// === Section ===` blocks.

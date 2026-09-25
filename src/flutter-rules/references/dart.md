@@ -60,7 +60,25 @@ project conventions when they are more specific.
   Use imperative `add`/`addAll` when the loop has meaningful side effects or
   complex control flow.
 - Initialize fields at their declaration when possible.
-- Use initializing formals in constructors when possible.
+
+### Constructors
+
+- Use initializing formals when the constructor parameter and field have the
+  same intended name and visibility.
+- Keep injected dependencies private unless they are intentionally part of the
+  public API. Do not expose an internal dependency just to satisfy a style
+  lint.
+- When a public constructor parameter must keep its caller-facing name while
+  initializing a private field with a different name, use an explicit
+  initializer, for example:
+
+  ```dart
+  Service(ApiClient client) : _client = client;
+  ```
+
+- Preserve the public API and encapsulation before satisfying a style lint. Do
+  not add a forwarding constructor solely to make an initializing formal fit.
+
 - Use `rethrow` when propagating a caught exception without changing it.
 - When an async function only forwards a `Future`, return it directly instead
   of using redundant `async`/`await`. Keep `async` when inspecting the result,
