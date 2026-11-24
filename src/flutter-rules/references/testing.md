@@ -10,6 +10,16 @@
   databases, and repositories only when isolation is necessary.
 - Keep tests deterministic, focused, and easy to maintain.
 
+## Native plugin flows
+
+- When changing a native plugin wrapper, add focused tests for known, recoverable
+  exception codes, unknown-error propagation with the original stack trace,
+  cancellation, and errors from later stages of the flow that must not be
+  misclassified as plugin outcomes. Cover cancellation returned by the plugin
+  or thrown as an exception when either is part of its contract.
+- Where OS prompts or Settings behavior matters, verify the flow on relevant
+  devices or record that device check as unverified.
+
 ## Assertions
 
 - Prefer expressive matchers over brittle literal comparisons when they convey
@@ -31,6 +41,9 @@ with these required paths:
 | --- | --- |
 | `lib/features/<feature>/<layer>/<file>.dart` | `test/features/<feature>/<layer>/<file>_test.dart` |
 | `lib/core/<layer>/<file>.dart` | `test/core/<layer>/<file>_test.dart` |
+
+`<layer>` may be a nested path such as `data/repositories` or
+`presentation/bloc`; mirror every directory level.
 
 - Never add a new feature-specific or core-specific test directly under `test/`.
 - Reserve root-level test files for genuinely app-wide smoke or integration
@@ -57,6 +70,23 @@ test/features/login/presentation/bloc/login_bloc_test.dart
 test/features/login/presentation/pages/login_page_test.dart
 ```
 
+- Follow the project's compatible naming style and use `group()` when it makes
+  multiple related cases easier to navigate.
+- Name each test after its observable behavior and expected outcome. A “should”
+  style is acceptable when it matches the project, for example:
+
+```dart
+test('value should start at 0', () {
+  expect(value, 0);
+});
+```
+
+- Use one focused test file per substantial class or feature behavior.
+- Use `setUp` for shared construction and `tearDown` for cleanup. The owning
+  test must close Cubits, Blocs, streams, and controllers it creates manually.
+  A Cubit or Bloc returned by `blocTest`'s `build` is automatically closed;
+  do not reuse it across tests or close it again.
+
 ### Automated policy validation
 
 Before finalizing any task that creates or modifies Dart tests, run this command
@@ -80,23 +110,6 @@ auditable exception with a concrete reason:
 
 Do not use an exception to preserve a flat feature-test layout. Repeat every
 exception and its reason in the final response.
-
-- Follow the project's compatible naming style and use `group()` when it makes
-  multiple related cases easier to navigate.
-- Name each test after its observable behavior and expected outcome. A “should”
-  style is acceptable when it matches the project, for example:
-
-```dart
-test('value should start at 0', () {
-  expect(value, 0);
-});
-```
-
-- Use one focused test file per substantial class or feature behavior.
-- Use `setUp` for shared construction and `tearDown` for cleanup. The owning
-  test must close Cubits, Blocs, streams, and controllers it creates manually.
-  A Cubit or Bloc returned by `blocTest`'s `build` is automatically closed;
-  do not reuse it across tests or close it again.
 
 ## Test Types
 

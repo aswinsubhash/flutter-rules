@@ -1,12 +1,11 @@
 # Implemented Feature Review
 
-Use this workflow whenever the user asks Flutter Rules to review an implemented feature. A review produces evidence and report artifacts; it does not modify application code.
+Use this workflow whenever the user asks Flutter Rules to review an implemented feature. A review produces evidence and report artifacts.
 
 ## Review boundary
 
 - Treat the review as read-only except for `.flutter-rules/reviews/` artifacts.
 - Do not fix findings, add dependencies, reorganize code, or edit project configuration during the review.
-- After presenting the report, wait for the user to choose follow-up work in chat.
 - Check whether `.flutter-rules/reviews/` is ignored. If it is not, disclose that the artifacts are untracked and ask before editing `.gitignore`.
 
 ## Determine the scope
@@ -27,7 +26,8 @@ Inspect directly changed files and only the affected dependency, public API, rou
 - Read only Flutter Rules references relevant to the changed and affected surfaces.
 - Run appropriate project validation when available, including `flutter analyze` and focused tests. Record every check as `passed`, `failed`, `blocked`, or `not-run`; never imply an unexecuted check passed.
 - Separate confirmed findings, findings that need verification, passed checks, and unverified areas. Mark findings that predate the feature with `provenance: affected-pre-existing` when the current change materially exposes or affects them.
-- A confirmed finding requires exact project-relative file and line evidence. Mark an incomplete concern `needs-verification` instead of asserting it as a defect.
+- A confirmed finding requires exact project-relative file and line evidence. When its impact depends on a specific entry path or runtime flow, also require acceptance criteria, product evidence, or reproducible runtime evidence. Mark an incomplete concern `needs-verification` instead of asserting it as a defect.
+- A finding that depends on an unsupported or unverified entry path, such as a technically addressable route that is not a product-supported deep link (see `references/navigation.md`), is `needs-verification`, not `confirmed`.
 - Redact tokens, credentials, personal data, and secret values from excerpts. A path and line range are sufficient when a safe excerpt cannot be included.
 - Report only actionable issues introduced by or materially exposed by the reviewed feature. Do not report personal style preferences as defects.
 
@@ -43,6 +43,13 @@ Keep these dimensions independent:
 | Effort | `XS`, `S`, `M`, `L`, `XL` | Relative remediation scope, not a time estimate |
 
 Use `critical` only for outcomes such as exploitable security compromise, unrecoverable data loss, authentication bypass, or application-wide failure. Architecture, style, and documentation issues are not critical unless their demonstrated impact warrants it.
+
+Do not assign `medium` or `high` severity to hypothetical navigation behavior without acceptance criteria, product evidence, or reproducible runtime evidence.
+
+## Remediation guidance
+
+- Choose the least behavior-changing remediation by default when options differ in navigation history or animation; navigation API choice follows `references/navigation.md`.
+- Before recommending a material navigation-history or animation change, explain the trade-off and require explicit user direction.
 
 ## Report data
 
@@ -61,10 +68,10 @@ The renderer computes counts and ordering; do not add duplicate summary totals.
 
 1. Create a collision-safe directory named `.flutter-rules/reviews/<YYYYMMDDTHHMMSSZ>-<feature-slug>/` in the reviewed project. Use UTC and add a numeric suffix if the path already exists.
 2. Save the source data as `review.json`.
-3. Resolve this skill's installed directory and run:
+3. Resolve `<skill-root>` to this skill's installed directory and run:
 
    ```text
-   node <skill-directory>/scripts/render-review-report.mjs <review.json> --output <review.html>
+   node "<skill-root>/scripts/render-review-report.mjs" <review.json> --output <review.html>
    ```
 
    The renderer opens the report by default. Use `--no-open` only for headless environments or when the user asks not to open it.

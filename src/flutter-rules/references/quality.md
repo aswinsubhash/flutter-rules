@@ -14,8 +14,6 @@
   are absent from `SharedPreferences`.
 - Cover secure-storage hydration, migration, logout cleanup, and failed
   persistence so partial writes cannot create an authenticated session.
-- Map local persistence exceptions to the appropriate `CacheFailure` at the
-  repository boundary.
 - Review diffs for plaintext secrets in logs, URLs, analytics, fixtures, or
   test output before finalizing.
 
@@ -27,7 +25,8 @@
 
 ## Documentation & comments
 
-At minimum, document the project in these core locations:
+When the task creates or changes project documentation, use these core
+locations. Unrelated tasks leave `README.md` and `ARCHITECTURE.md` as they are:
 
 | Layer | File / form | Purpose |
 |-------|-------------|---------|
@@ -81,6 +80,10 @@ Document **why / contract**, not what each line does.
 - Easy-to-break / dangerous behavior
 - Every `// ignore:` suppression must include a nearby explanation of why the
   lint is intentionally disabled; never suppress a rule silently.
+- Suppress `prefer_initializing_formals` only narrowly when applying it would
+  make a constructor parameter private or change/break external callers. Keep
+  the suppression on the smallest relevant scope and explain the public API or
+  encapsulation constraint next to it.
 
 **Do not** narrate self-explanatory code (“get the email”, “call the API”).
 **Do not** add decorative `// === Section ===` blocks.

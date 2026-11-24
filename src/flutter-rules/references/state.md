@@ -54,23 +54,12 @@
 - Helpers should accept the explicit values they need. Pass `BuildContext` only
   when the helper calls an API that requires it, rather than passing context or
   an entire Bloc state by default.
-- These practices keep UI code readable without turning straightforward values
-  or declarative widget configuration into unnecessary indirection.
 
 ## Architecture Boundaries
-- Follow the feature structure `data/`, `di/`, `domain/`,
-  `presentation/bloc/`, `presentation/pages/`, `presentation/widgets/`, and a
-  public `<feature>.dart` barrel.
-- `presentation/bloc` depends on domain use cases and repository contracts;
-  inject those dependencies through the Cubit or Bloc constructor.
-- `domain` owns entities, repository interfaces, and use cases. It must not
-  import `data` or `presentation`.
-- `data` implements domain contracts and handles API, database, and storage
-  access. `di` wires data implementations, domain use cases, and presentation
-  state managers together.
-- Follow the repository `Result` contract: consume `Result.fold(...)` in the
-  Cubit or Bloc and map typed data exceptions to failures at the repository
-  boundary, not in presentation state management.
+- Layering, feature structure, and the `Result` flow are in
+  `references/architecture.md`.
+- Inject domain use cases and repository contracts through the Cubit or Bloc
+  constructor.
 - Do not communicate directly from one Bloc/Cubit to another. Use a scoped UI
   listener to bridge side effects or inject a shared repository when state is
   genuinely shared.
@@ -188,20 +177,8 @@ return Scaffold(
 - Before finalizing, run the automated policy validator from
   `references/testing.md` and verify every Bloc/Cubit transition test uses
   `bloc_test` or has an approved documented exception.
-- Follow the mandatory mirrored test placement in `references/testing.md` and
-  the project's compatible naming style. Cover the initial state and relevant
-  success, loading, and failure transitions.
-- The owning test must close Cubit or Bloc instances it creates manually,
-  typically in `tearDown`. `blocTest` automatically closes the instance returned
-  by its `build`; do not reuse that instance across tests or close it again.
-- Register fallback values only when required by the project's selected mocking
-  tool (for example, a custom type passed to a Mocktail argument matcher).
+- Placement, cleanup (including `blocTest` instance lifetime), and mocking
+  follow `references/testing.md`. Cover the initial state and relevant success,
+  loading, and failure transitions.
 - Keep tests focused on observable state transitions and side-effect decisions;
   do not test private handler implementation details.
-
-## Common State-Management Pitfalls
-- Do not emit the same state instance twice; meaningful state changes require a
-  new instance and complete value-equality fields.
-- Do not mutate state lists or maps in place.
-- Do not call `context.watch` from callbacks; use `context.read` there.
-- Do not put repository calls, validation, or business decisions in widgets.

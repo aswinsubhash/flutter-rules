@@ -6,6 +6,7 @@ import {
   lstatSync,
   mkdirSync,
   mkdtempSync,
+  readdirSync,
   readFileSync,
   rmSync,
   symlinkSync,
@@ -170,6 +171,22 @@ test('testing policy makes placement and bloc_test validation completion require
     'test/features/login/presentation/bloc/login_bloc_test.dart',
     'test/features/login/presentation/pages/login_page_test.dart',
   ]) assert.match(testing, new RegExp(path.replaceAll('/', '\\/').replaceAll('.', '\\.')));
+});
+
+test('skill reference pointers resolve and every reference is indexed', () => {
+  const skillRoot = join(repoRoot, 'src', 'flutter-rules');
+  const files = ['SKILL.md', ...readdirSync(join(skillRoot, 'references')).map((name) => `references/${name}`)];
+  const skill = readFileSync(join(skillRoot, 'SKILL.md'), 'utf8');
+  for (const file of files) {
+    const content = readFileSync(join(skillRoot, file), 'utf8');
+    for (const [, target] of content.matchAll(/`(references\/[\w-]+\.md)`/g)) {
+      assert.equal(existsSync(join(skillRoot, target)), true, `${file} points to missing ${target}`);
+    }
+    assert.doesNotMatch(content, /<skill-directory>/, file);
+  }
+  for (const file of files.filter((name) => name.startsWith('references/'))) {
+    assert.ok(skill.includes(`\`${file}\``), `SKILL.md does not index ${file}`);
+  }
 });
 
 test('skill inspector rejects stale versions and duplicate policy sections', () => {
