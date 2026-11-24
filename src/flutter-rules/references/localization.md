@@ -1,7 +1,7 @@
 # Localization and Package Boundary Rules
 
-Use these rules when app-level localization is shared with reusable feature or
-UI packages.
+Use these rules for any user-facing text, backend-provided messages, and
+localization shared with reusable feature or UI packages.
 
 ## App-owned localization
 
@@ -12,7 +12,8 @@ UI packages.
   app-owned user-facing string to every supported language and access it through
   `context.l10n`.
 - Apps supporting one language do not need ARB setup. Keep app-owned user-facing
-  text in `lib/core/utils/app_strings.dart` and access it through `AppStrings`.
+  text in the project's existing strings class (`AppStrings`; default
+  `lib/core/utils/app_strings.dart`) and access it through that class.
 - Keep generated app localizations in the host app. App-specific feature
   folders may use `context.l10n`, but reusable packages must not import the
   host app's generated localization class.

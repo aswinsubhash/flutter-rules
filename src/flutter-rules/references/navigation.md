@@ -11,8 +11,7 @@
 ## Navigation APIs
 - Follow the project's existing routing approach. When it uses go_router, use
   its established `context.go`, `context.push`, and `context.pop` APIs for
-  application routes; this does not make `context.go` preferable to
-  `context.pop` in every situation.
+  application routes.
 - Choose the API by navigation intent:
   - `context.push` adds a route and preserves the current route.
   - `context.pop` returns to the previous route and preserves reverse

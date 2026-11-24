@@ -2,46 +2,42 @@
 
 ## Dio Client Baseline
 - When adding core networking, create the baseline from this repository's needs; do not copy endpoint lists, session fields, or storage behavior from another project unless the user explicitly asks for those details.
-- Create `lib/core/network/api_endpoints.dart` only when the current task needs its first real endpoint member; do not add an empty `ApiEndpoints` placeholder.
-- Create `lib/core/storage/user_session.dart` only when the current task needs its first real session contract or member; do not add an empty `UserSession` placeholder.
-- Reuse the project's existing environment configuration. When a project needs
-  an enum-based configuration, the following neutral pattern is a suitable
-  baseline. Use `--dart-define` only when it matches the project's chosen
+- Use the project's existing endpoints file. When none exists, create `lib/core/network/api_endpoints.dart` only when the current task needs its first real endpoint member; do not add an empty `ApiEndpoints` placeholder.
+- Use the project's existing session contract. When none exists, create `lib/core/storage/user_session.dart` only when the current task needs its first real session contract or member; do not add an empty `UserSession` placeholder.
+- Reuse the project's existing environment configuration. Add one only when
+  the current task needs it and the project has none; the following immutable
+  pattern is a suitable baseline. Select the environment once in the app or
+  flavor entrypoint and pass it through DI; never keep it in mutable global
+  state. Use `--dart-define` only when it matches the project's chosen
   configuration strategy.
 
 ```dart
-enum AppEnvironment { staging, production }
+enum AppEnvironment {
+  staging('https://staging-api.example.com/'),
+  production('https://api.example.com/');
 
-abstract final class Env {
-  static AppEnvironment currentEnvironment = AppEnvironment.staging;
+  const AppEnvironment(this.baseUrl);
 
-  static String get baseUrl {
-    switch (currentEnvironment) {
-      case AppEnvironment.staging:
-        return 'https://staging-api.example.com/';
-      case AppEnvironment.production:
-        return 'https://api.example.com/';
-    }
-  }
+  final String baseUrl;
 }
 ```
 
-- Do not add environment helpers unless the current feature needs them.
-- `DioClient` should use direct package imports, `Env.baseUrl`, JSON headers,
-  repository exception types, and this baseline client shape:
+- `DioClient` should use direct package imports, the project's configured base
+  URL, JSON headers, repository exception types, and this baseline client
+  shape:
   - constructor accepts optional `Dio? dio` and `String? baseUrl`
   - exposes `Dio get dio`
-  - uses 60-second connect/receive/send timeouts
+  - uses the project's connect/receive/send timeouts, defaulting to 60 seconds when none are defined
   - adds full request and response logging, including headers and bodies, only
     inside `if (kDebugMode)`, with non-production credentials and data, and to a
     local console only; never forwards these logs to monitoring, and disables
     HTTP logging in profile and release modes
   - supports `get`, `post`, `put`, `patch`, and `delete`
   - supports `CancelToken` and progress callbacks where Dio supports them
-  - extracts and preserves a safe response body `message` as provided when the
-    feature's existing API and product contract define it as user-facing; do not
-    remap backend-owned messages to frontend localization, and do not assume the
-    field's presence alone makes its contents safe or user-facing
+  - extracts a response body `message` only when the feature's existing API and
+    product contract define it as user-facing; the field's presence alone does
+    not make its contents safe. Ownership and display follow
+    `references/localization.md`
   - uses existing status or reason codes, not user-facing message text, for
     programmatic decisions
   - maps `connectionError` to `NetworkException`; inspect the underlying cause

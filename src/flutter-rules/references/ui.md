@@ -28,6 +28,13 @@
 - Ensure icons that convey direction (e.g., arrows) mirror correctly using
   Flutter's built-in directionality support or an equivalent project convention.
 
+## Accessibility
+- Give icon-only controls a semantic label (`tooltip` or `Semantics`).
+- Keep interactive targets at least 48x48 logical pixels.
+- Let text scale with the system setting without clipping or overflow.
+- Never convey meaning by color alone; pair it with text or an icon.
+- Exclude purely decorative images from semantics.
+
 ## Loading indicators
 - Reuse the project's existing loading components and conventions. If the
   project provides a shared loader, use it consistently for equivalent
@@ -37,7 +44,7 @@
   built-in indicators.
 
 ## Color Constants Policy
-- **No hardcoded colors in UI**: All `Color(0xFF...)` values must be extracted to `lib/core/presentation/theme/app_colors.dart`.
+- **No hardcoded colors in UI**: Extract all `Color(0xFF...)` values to the project's existing color constants (`AppColors`). When none exist, default to `lib/core/presentation/theme/app_colors.dart`.
 - Define meaningful semantic names (for example, `primaryAction`, `warning`, or
   `success`) instead of generic names like `red1` or `green2`.
 - Avoid accidental duplicate color literals. Distinct semantic tokens may share
@@ -50,7 +57,7 @@
   theme or design-token convention.
 
 ## Image Asset Constants Policy
-- **No hardcoded image asset paths in UI**: All `assets/images/...` string values must be extracted to `lib/core/utils/app_assets.dart`.
+- **No hardcoded image asset paths in UI**: Extract all `assets/images/...` string values to the project's existing asset constants (`AppAssets`). When none exist, default to `lib/core/utils/app_assets.dart`.
 - Define meaningful semantic names (for example, `logo`, `emptyState`, or
   `avatarPlaceholder`) instead of file-name-only names when possible.
 - Reference images via `AppAssets.<name>` in presentation widgets.

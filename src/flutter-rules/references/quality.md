@@ -14,8 +14,6 @@
   are absent from `SharedPreferences`.
 - Cover secure-storage hydration, migration, logout cleanup, and failed
   persistence so partial writes cannot create an authenticated session.
-- Map local persistence exceptions to the appropriate `CacheFailure` at the
-  repository boundary.
 - Review diffs for plaintext secrets in logs, URLs, analytics, fixtures, or
   test output before finalizing.
 
@@ -27,7 +25,8 @@
 
 ## Documentation & comments
 
-At minimum, document the project in these core locations:
+When the task creates or changes project documentation, use these core
+locations. Unrelated tasks leave `README.md` and `ARCHITECTURE.md` as they are:
 
 | Layer | File / form | Purpose |
 |-------|-------------|---------|
