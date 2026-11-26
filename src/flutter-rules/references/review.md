@@ -51,6 +51,15 @@ Do not assign `medium` or `high` severity to hypothetical navigation behavior wi
 - Choose the least behavior-changing remediation by default when options differ in navigation history or animation; navigation API choice follows `references/navigation.md`.
 - Before recommending a material navigation-history or animation change, explain the trade-off and require explicit user direction.
 
+## Repeated review and fix loops
+
+- Run a review, fix and review-again loop only when the user asks for it. That request authorizes remediation between rounds.
+- Before the first round, propose a round limit and a list of accepted limitations (each with a reason), save them to a file under `.flutter-rules/reviews/`, and get the user's approval.
+- Give that file to every reviewer. Add to it only with the user's approval.
+- Use a fresh reviewer each round.
+- Stop when a round reports no actionable findings or the round limit is reached.
+- In the final report, list every accepted limitation as still unfixed, and state what the last round did not cover.
+
 ## Report data
 
 Read `schemas/review-report.schema.json` and create a conforming JSON document. Each finding must include:

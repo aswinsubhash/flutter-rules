@@ -10,6 +10,20 @@
   databases, and repositories only when isolation is necessary.
 - Keep tests deterministic, focused, and easy to maintain.
 
+### Prove every test can fail
+
+- A new or changed test is complete only after it has been seen failing while
+  the behavior it names is missing or broken, and passing once it is correct.
+- For a fix, run the test before applying the fix. For a test added to working
+  code, break that behavior on purpose and confirm the test fails.
+- Before breaking code on purpose, save a copy of the file. Restore from that
+  copy and compare the two. Never restore with `git checkout` or `git restore`,
+  which can discard uncommitted work.
+- Check that the assertion cannot pass by accident: values tied to the right
+  widget, no match on blank or default output, no dependence on test order or
+  on state cached by an earlier test.
+- State in the final response how each test was seen to fail.
+
 ## Native plugin flows
 
 - When changing a native plugin wrapper, add focused tests for known, recoverable
@@ -120,6 +134,12 @@ exception and its reason in the final response.
 - For new or modified Cubit/Bloc transition tests, follow the mandatory
   `bloc_test` policy and exception rules in `references/state.md`.
 
+### When to run what
+
+- While editing, run only the test folders touched by the change.
+- Run the full suite once before reporting the task done, as its own command,
+  in the background when the tool supports it.
+
 ## Mocking
 
 - Mock or fake external dependencies at the boundary of the unit under test;
@@ -144,3 +164,14 @@ exception and its reason in the final response.
   when the displayed copy itself is the behavior under test.
 - Keep widget-test fixtures minimal. Prefer Flutter primitives unless a custom
   design-system component is the behavior under test.
+
+### Layout and text-scale tests
+
+- Use the app's own sizing setup (for example the same `ScreenUtilInit`
+  arguments and theme font as the app root) and load the real font assets.
+  Default test fonts and sizing can hide or invent overflows.
+- Keep this setup in one shared helper under `test/support/` instead of
+  repeating it per test file.
+- Cover the narrowest supported width and a normal width, at text scales 1.0,
+  1.3, 2.0 and 3.0. Add the longest supported translation, and system bold text
+  when the code measures text itself.
